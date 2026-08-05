@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <meta name="googlebot" content="noindex,nofollow">
+    <meta name="baidu-spider" content="noindex,nofollow">
+    <meta name="sogou_spider" content="noindex,nofollow">
+    <title>周菜单管家 · 智能排菜系统</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #C73E1D;
+            --primary-light: #E85D2C;
+            --accent: #F4A261;
+            --bg: #FAF6EF;
+            --bg-card: #FFFFFF;
+            --bg-soft: #F4EDE0;
+            --border: #ECE5D8;
+            --dark: #1A1A1A;
+            --veg: #6A994E;
+            --meat: #F4A261;
+            --big-meat: #BC4749;
+            --soup: #8A8A8A;
+        }
+
+        @font-face {
+            font-family: 'Alibaba PuHuiTi';
+            src: url('https://puhuiti.oss-cn-hangzhou.aliyuncs.com/3.0/Regular/AlibabaPuHuiTi-3-55-Regular.woff2') format('woff2');
+        }
+
+        * {
+            font-family: 'Alibaba PuHuiTi', system-ui, sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .card-shadow {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -8px rgba(199, 62, 29, 0.08);
+        }
+
+        .card-shadow-hover:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05), 0 16px 40px -8px rgba(199, 62, 29, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(199, 62, 29, 0.3);
+        }
+
+        .btn-outline-danger {
+            border: 1.5px solid var(--big-meat);
+            color: var(--big-meat);
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+        .btn-outline-danger:hover {
+            background: #F7DEDD;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: #6A994E;
+            color: #fff;
+            transition: all 0.2s ease;
+        }
+        .btn-success:hover {
+            background: #5A8A3E;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(106, 153, 78, 0.3);
+        }
+
+        .dish-empty {
+            border: 1.5px dashed var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .dish-empty:hover {
+            border-color: var(--primary);
+            background: rgba(199, 62, 29, 0.04);
+        }
+
+        .dish-slot {
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn {
+            position: relative;
+            transition: color 0.2s ease;
+        }
+        .nav-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        .nav-btn.active::after {
+            width: 24px;
+        }
+        .nav-btn.active {
+            color: var(--primary);
+        }
+
+        .day-card {
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .day-card:hover {
+            border-color: rgba(199, 62, 29, 0.2);
+        }
+        .day-card.today {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 1px var(--primary), 0 8px 32px -8px rgba(199, 62, 29, 0.25);
+        }
+
+        .dish-image {
+            background: linear-gradient(135deg, var(--bg-soft), #fff);
+        }
+
+        .input-field {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .input-field:focus {
+            border-color: var(--primary);
+        }
+
+        .decor-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .animate-scale-in {
+            animation: scaleIn 0.2s ease;
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--dark);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            z-index: 1000;
+            max-width: 90vw;
+            text-align: center;
+            word-break: break-all;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .tag-veg {
+            background: #E8F3D6;
+            color: #5A7A3A;
+        }
+        .tag-meat {
+            background: #FDE8D0;
+            color: #C97A2A;
+        }
+        .tag-big-meat {
+            background: #F7DEDD;
+            color: #BC4749;
+        }
+        .tag-soup {
+            background: #E5E5E5;
+            color: #6A6A6A;
+        }
+
+        .category-pill {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1.5px solid var(--border);
+            background: white;
+            color: var(--dark);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .category-pill:hover {
+            border-color: var(--primary);
+        }
+        .category-pill.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .visitor-hidden {
+            display: none !important;
+        }
+
+        /* 未发布空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+        }
+        .empty-state .icon-wrap {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .empty-state .icon-wrap i {
+            font-size: 32px;
+            color: var(--soup);
+        }
+
+        /* 发布状态标签 */
+        .publish-badge {
+            font-size: 12px;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .publish-badge.published {
+            background: #E8F3D6;
+            color: #5A7A3A;
+        }
+        .publish-badge.unpublished {
+            background: #FDE8D0;
+            color: #C97A2A;
+        }
+    </style>
+</head>
+<body>
+    <!-- 装饰背景 -->
+    <div class="decor-blob" style="width: 400px; height: 400px; background: var(--accent); top: -100px; right: -100px;"></div>
+    <div class="decor-blob" style="width: 500px; height: 500px; background: var(--primary); bottom: -200px; left: -200px; opacity: 0.15;"></div>
+
+    <!-- 顶部导航 -->
+    <header class="sticky top-0 z-40 glass border-b border-white/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#C73E1D] to-[#F4A261] flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-utensils text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-[#1A1A1A]">周菜单管家</h1>
+                    <p class="text-xs text-[#8A8A8A] hidden sm:block">智能排菜 · 营养均衡</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <nav class="flex items-center gap-1 sm:gap-2 bg-white/60 rounded-full p-1 border border-white/60">
+                    <button onclick="switchPage('weekly')" id="nav-weekly" class="nav-btn active px-4 sm:px-6 py-2 rounded-full text-sm font-medium">
+                        <i class="fa-regular fa-calendar mr-1.5"></i>每周菜单
+                    </button>
+                    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn px-4 sm:px-6 py-2 rounded-full text-sm font-medium text-[#8A8A8A] admin-only visitor-hidden">
+                        <i class="fa-solid fa-book-open mr-1.5"></i>总菜单
+                    </button>
+                </nav>
+
+                <!-- 用户区域 -->
+                <div id="userArea" class="flex items-center gap-2">
+                    <button id="loginBtn" onclick="openLoginModal()" class="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white border border-[#ECE5D8] text-sm font-medium text-[#1A1A1A] hover:border-[#C73E1D] transition">
+                        <i class="fa-solid fa-right-to-bracket text-[#C73E1D]"></i>
+                        <span class="hidden sm:inline">管理员登录</span>
+                    </button>
+                    <div id="userMenu" class="hidden items-center gap-2">
+                        <div class="flex items-center gap-2 px-3 py-2 rounded-full bg-[#C73E1D] text-white text-sm font-medium">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <span>kebao</span>
+                        </div>
+                        <button onclick="logout()" class="w-9 h-9 rounded-full bg-white border border-[#ECE5D8] flex items-center justify-center text-[#8A8A8A] hover:text-[#BC4749] hover:border-[#BC4749] transition" title="退出登录">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
+
+        <!-- ============== 每周菜单页面 ============== -->
+        <section id="page-weekly" class="page-content active">
+            <!-- 周信息 -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span class="inline-flex items-center px-3 py-1 bg-[#C73E1D] text-white text-xs font-semibold rounded-full">
+                            <i class="fa-solid fa-circle text-[8px] mr-1.5 animate-pulse"></i>当前周
+                        </span>
+                        <span class="text-sm text-[#8A8A8A]" id="weekRange"></span>
+                        <span class="text-sm font-medium text-[#C73E1D]" id="weekNumber"></span>
+                        <!-- 发布状态标签 -->
+                        <span id="publishBadge" class="publish-badge published hidden">
+                            <i class="fa-solid fa-check-circle mr-1"></i>已发布
+                        </span>
+                        <span id="publishBadgeUnpub" class="publish-badge unpublished hidden">
+                            <i class="fa-solid fa-clock mr-1"></i>未发布
+                        </span>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-[#1A1A1A]" id="weekTitle"></h2>
+                </div>
+
+                <div class="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-[#ECE5D8]">
+                    <button onclick="changeWeek(-1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button onclick="goToThisWeek()" class="px-3 h-9 rounded-xl hover:bg-[#FAF6EF] text-sm font-medium text-[#1A1A1A] transition">
+                        本周
+                    </button>
+                    <button onclick="changeWeek(1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+                <div class="stat-card">
+                    <div>
+                        <p class="text-xs text-[#8A8A8A] mb-1">总菜品</p>
+                        <p class="text-2xl font-bold text-[#1A1A1A]"><span id="statTotal">0</span><span class="text-sm font-normal text-[#8A8A8A]">/21</span></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-[#F4EDE0] flex items-center justify-center">
+                        <i class="fa-solid fa-utensils text-[#1A1A1A]"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <p class="text-xs text-[#8A8A8A] mb-1">素菜</p>
+                        <p class="text-2xl font-bold text-[#6A994E]"><span id="statVeg">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-[#E8F3D6] flex items-center justify-center">
+                        <i class="fa-solid fa-leaf text-[#6A994E]"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <p class="text-xs text-[#8A8A8A] mb-1">荤菜</p>
+                        <p class="text-2xl font-bold text-[#BC4749]"><span id="statMeat">0</span><span class="text-sm font-normal text-[#8A8A8A]">/14</span></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-[#F7DEDD] flex items-center justify-center">
+                        <i class="fa-solid fa-drumstick-bite text-[#BC4749]"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 七天卡片 -->
+            <div id="weekGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <!-- 由JS动态生成 -->
+            </div>
+
+            <!-- 操作按钮区（仅管理员） -->
+            <div class="mt-6 flex flex-wrap items-center justify-center gap-3 admin-only visitor-hidden">
+                <button onclick="saveWeekMenu()" class="btn-success px-6 py-3 rounded-2xl font-medium flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    保存本周菜单
+                </button>
+                <button onclick="clearWeekMenu()" class="btn-outline-danger px-6 py-3 rounded-2xl font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-trash"></i>
+                    清除本周菜单
+                </button>
+                <button onclick="autoArrange()" class="btn-primary px-6 py-3 rounded-2xl font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    一键智能排菜
+                </button>
+            </div>
+        </section>
+
+        <!-- ============== 总菜单页面 ============== -->
+        <section id="page-menu" class="page-content">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">总菜单库</h2>
+                    <p class="text-sm text-[#8A8A8A] mt-1">共 <span id="totalDishCount">0</span> 道菜品 · 管理你的菜品素材</p>
+                </div>
+                <button onclick="openDishForm()" class="btn-primary px-5 py-2.5 rounded-2xl font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>添加新菜品
+                </button>
+            </div>
+
+            <!-- 分类筛选 -->
+            <div class="flex flex-wrap items-center gap-2 mb-6">
+                <button onclick="filterCategory('all')" data-cat="all" class="category-pill active">
+                    <i class="fa-solid fa-utensils mr-1"></i>全部
+                </button>
+                <button onclick="filterCategory('素菜')" data-cat="素菜" class="category-pill">
+                    <i class="fa-solid fa-leaf mr-1" style="color: var(--veg);"></i>素菜
+                </button>
+                <button onclick="filterCategory('小荤')" data-cat="小荤" class="category-pill">
+                    <i class="fa-solid fa-bacon mr-1" style="color: var(--meat);"></i>小荤
+                </button>
+                <button onclick="filterCategory('大荤')" data-cat="大荤" class="category-pill">
+                    <i class="fa-solid fa-drumstick-bite mr-1" style="color: var(--big-meat);"></i>大荤
+                </button>
+                <button onclick="filterCategory('汤品')" data-cat="汤品" class="category-pill">
+                    <i class="fa-solid fa-mug-hot mr-1" style="color: var(--soup);"></i>汤品
+                </button>
+
+                <div class="ml-auto relative">
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#8A8A8A] text-sm"></i>
+                    <input type="text" id="searchInput" placeholder="搜索菜品..." oninput="renderMenu()" class="pl-9 pr-4 py-2 rounded-full border border-[#ECE5D8] bg-white text-sm w-48 sm:w-64 focus:outline-none focus:border-[#C73E1D]">
+                </div>
+            </div>
+
+            <!-- 菜品网格 -->
+            <div id="menuGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <!-- 由JS动态生成 -->
+            </div>
+
+            <!-- 空状态 -->
+            <div id="emptyMenu" class="hidden text-center py-20">
+                <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-[#F4EDE0] flex items-center justify-center">
+                    <i class="fa-solid fa-utensils text-4xl text-[#8A8A8A]"></i>
+                </div>
+                <h3 class="text-xl font-bold text-[#1A1A1A] mb-2">还没有菜品</h3>
+                <p class="text-sm text-[#8A8A8A] mb-4">添加你的第一道菜品，开启智能排菜</p>
+                <button onclick="openDishForm()" class="btn-primary px-5 py-2.5 rounded-2xl font-medium inline-flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>添加新菜品
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- ============== 登录模态框 ============== -->
+    <div id="loginModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm modal-content animate-scale-in">
+            <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between">
+                <h3 class="text-xl font-bold">管理员登录</h3>
+                <button onclick="closeLoginModal()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="text-center mb-4">
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[#C73E1D] to-[#F4A261] flex items-center justify-center shadow-lg mb-3">
+                        <i class="fa-solid fa-user-shield text-white text-2xl"></i>
+                    </div>
+                    <p class="text-sm text-[#8A8A8A]">请输入管理员账号和密码</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">账号</label>
+                    <input type="text" id="loginUsername" class="input-field" placeholder="请输入账号" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">密码</label>
+                    <input type="password" id="loginPassword" class="input-field" placeholder="请输入密码" onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin();}">
+                </div>
+
+                <button onclick="doLogin()" class="btn-primary w-full py-3 rounded-2xl font-medium flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    登 录
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============== 菜品表单模态框 ============== -->
+    <div id="dishFormModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md modal-content animate-scale-in">
+            <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between">
+                <h3 class="text-xl font-bold" id="dishFormTitle">添加菜品</h3>
+                <button onclick="closeDishForm()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <!-- 图片预览 -->
+                <div class="flex justify-center">
+                    <div class="relative">
+                        <img id="dishImagePreview" src="" alt="" class="w-28 h-28 rounded-2xl object-cover border-2 border-dashed border-[#ECE5D8] hidden">
+                        <div id="dishImagePlaceholder" class="w-28 h-28 rounded-2xl bg-[#FAF6EF] border-2 border-dashed border-[#ECE5D8] flex items-center justify-center">
+                            <i class="fa-solid fa-image text-3xl text-[#8A8A8A]"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                      <label class="block text-sm font-medium mb-1.5">菜品图片 URL</label>
+                      <input type="text" id="dishImage" oninput="previewDishImage()" class="input-field" placeholder="粘贴网络图片链接">
+                      <p class="mt-1 text-xs text-[#8A8A8A]">仅支持网络图片链接，本地图片上传已关闭</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">菜品名称 <span class="text-[#C73E1D]">*</span></label>
+                    <input type="text" id="dishName" class="input-field" placeholder="如：宫保鸡丁">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">分类 <span class="text-[#C73E1D]">*</span></label>
+                    <div class="flex flex-wrap gap-2" id="categorySelector">
+                        <button data-cat="素菜" onclick="selectDishCategory(this)" class="category-pill">
+                            <i class="fa-solid fa-leaf mr-1" style="color: var(--veg);"></i>素菜
+                        </button>
+                        <button data-cat="小荤" onclick="selectDishCategory(this)" class="category-pill">
+                            <i class="fa-solid fa-bacon mr-1" style="color: var(--meat);"></i>小荤
+                        </button>
+                        <button data-cat="大荤" onclick="selectDishCategory(this)" class="category-pill">
+                            <i class="fa-solid fa-drumstick-bite mr-1" style="color: var(--big-meat);"></i>大荤
+                        </button>
+                        <button data-cat="汤品" onclick="selectDishCategory(this)" class="category-pill">
+                            <i class="fa-solid fa-mug-hot mr-1" style="color: var(--soup);"></i>汤品
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1.5">食材信息</label>
+                    <textarea id="dishIngredients" class="input-field" rows="2" placeholder="如：鸡胸肉、花生、干辣椒"></textarea>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeDishForm()" class="flex-1 py-3 rounded-2xl font-medium border border-[#ECE5D8] text-[#1A1A1A] hover:bg-[#FAF6EF] transition">
+                        取消
+                    </button>
+                    <button onclick="saveDish()" class="btn-primary flex-1 py-3 rounded-2xl font-medium">
+                        保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============== 选择菜品模态框 ============== -->
+    <div id="selectDishModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg modal-content animate-scale-in">
+            <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold">选择菜品</h3>
+                    <p class="text-xs text-[#8A8A8A] mt-0.5" id="selectDishInfo">为 周一 素菜 位置选择菜品</p>
+                </div>
+                <button onclick="closeSelectDish()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="relative mb-4">
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#8A8A8A] text-sm"></i>
+                    <input type="text" id="selectSearchInput" placeholder="搜索菜品..." oninput="renderSelectDishList()" class="pl-9 pr-4 py-2 rounded-full border border-[#ECE5D8] bg-white text-sm w-full focus:outline-none focus:border-[#C73E1D]">
+                </div>
+                <div id="selectDishList" class="space-y-2 max-h-96 overflow-y-auto">
+                    <!-- 由JS动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============== 确认框 ============== -->
+    <div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm animate-scale-in">
+            <div class="p-6">
+                <h3 class="text-xl font-bold mb-2" id="confirmTitle">确认</h3>
+                <p class="text-sm text-[#8A8A8A] mb-6" id="confirmMessage"></p>
+                <div class="flex gap-3">
+                    <button onclick="closeConfirm()" class="flex-1 py-3 rounded-2xl font-medium border border-[#ECE5D8] text-[#1A1A1A] hover:bg-[#FAF6EF] transition">
+                        取消
+                    </button>
+                    <button id="confirmBtn" class="btn-primary flex-1 py-3 rounded-2xl font-medium">
+                        确认
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast" class="toast"></div>
+
+<script>
+// ========== Cloudflare Workers 后端接口 替换为你自己的Worker域名
+const API_BASE = "/api/menu";
+const ADMIN_SECRET = "kebao@4083789";
+const PUBLIC_ACCESS_KEY = "menu-view-9876secret";
+const STORAGE_KEY = 'weekMenuManager_data';
+// 默认菜品数据（后端无数据时初始化）
+const DEFAULT_DISHES = [
+    { id: 1, name: '宫保鸡丁', category: '大荤', image: '', ingredients: '鸡胸肉、花生、干辣椒' },
+    { id: 2, name: '鱼香肉丝', category: '大荤', image: '', ingredients: '猪里脊、木耳、胡萝卜' },
+    { id: 3, name: '红烧排骨', category: '大荤', image: '', ingredients: '排骨、冰糖、酱油' },
+    { id: 4, name: '清蒸鲈鱼', category: '大荤', image: '', ingredients: '鲈鱼、葱、姜' },
+    { id: 5, name: '糖醋里脊', category: '大荤', image: '', ingredients: '猪里脊、番茄酱、醋' },
+    { id: 6, name: '梅菜扣肉', category: '大荤', image: '', ingredients: '五花肉、梅菜' },
+    { id: 7, name: '回锅肉', category: '大荤', image: '', ingredients: '五花肉、青蒜、豆瓣酱' },
+    { id: 8, name: '番茄炒蛋', category: '小荤', image: '', ingredients: '番茄、鸡蛋' },
+    { id: 9, name: '麻婆豆腐', category: '小荤', image: '', ingredients: '豆腐、肉末、花椒' },
+    { id: 10, name: '青椒肉丝', category: '小荤', image: '', ingredients: '猪里脊、青椒' },
+    { id: 11, name: '韭菜炒蛋', category: '小荤', image: '', ingredients: '韭菜、鸡蛋' },
+    { id: 12, name: '芹菜炒香干', category: '小荤', image: '', ingredients: '芹菜、香干' },
+    { id: 13, name: '蒜苔炒肉', category: '小荤', image: '', ingredients: '蒜苔、猪肉' },
+    { id: 14, name: '木须肉', category: '小荤', image: '', ingredients: '猪肉、鸡蛋、木耳' },
+    { id: 15, name: '清炒西兰花', category: '素菜', image: '', ingredients: '西兰花、蒜' },
+    { id: 16, name: '凉拌黄瓜', category: '素菜', image: '', ingredients: '黄瓜、蒜、醋' },
+    { id: 17, name: '炒时蔬', category: '素菜', image: '', ingredients: '时令蔬菜' },
+    { id: 18, name: '麻酱油麦菜', category: '素菜', image: '', ingredients: '油麦菜、芝麻酱' },
+    { id: 19, name: '蒜蓉生菜', category: '素菜', image: '', ingredients: '生菜、蒜' },
+    { id: 20, name: '凉拌木耳', category: '素菜', image: '', ingredients: '木耳、洋葱、香菜' },
+    { id: 21, name: '酸辣土豆丝', category: '素菜', image: '', ingredients: '土豆、干辣椒、醋' },
+];
+let state = {
+    dishes: [],
+    weeklyMenus: {},
+    publishedWeeks: {},
+    currentWeekOffset: 0,
+    currentPage: 'weekly',
+    menuFilter: 'all',
+    editingDishId: null,
+    selectedCategory: null,
+    selectContext: null,
+    isAdmin: false,
+    hasUnsaved: false,
+    lastUpdateTime: 0,
+    realtimeTimer: null
+};
+
+// 链接密钥校验，无密钥直接拦截页面
+function checkAccessKey() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const key = urlParams.get("key");
+    if (key !== PUBLIC_ACCESS_KEY) {
+        document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#666666;">访问链接无效，请使用正确分享链接进入</div>`;
+        throw new Error("非法访问");
+    }
+}
+
+// 【修复4：登录持久化 读取本地管理员状态】
+function restoreAdminLogin() {
+    const localIsAdmin = localStorage.getItem("isAdmin");
+    if (localIsAdmin === "true") {
+        state.isAdmin = true;
+    }
+}
+
+// 后端接口封装
+async function apiGetData() {
+    const res = await fetch(`${API_BASE}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get", accessKey: PUBLIC_ACCESS_KEY })
+    });
+    const json = await res.json();
+    if (json.code !== 200) throw new Error(json.msg);
+    return json.data;
+}
+async function apiSetData(fullData) {
+    const res = await fetch(`${API_BASE}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: "set",
+            accessKey: PUBLIC_ACCESS_KEY,
+            adminKey: ADMIN_SECRET,
+            data: fullData
+        })
+    });
+    const json = await res.json();
+    if (json.code !== 200) throw new Error(json.msg);
+    return json;
+}
+async function apiGetUpdateTime() {
+    const res = await fetch(`${API_BASE}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "realtime", accessKey: PUBLIC_ACCESS_KEY })
+    });
+    const json = await res.json();
+    return json.updateTime || 0;
+}
+
+// 加载远程数据
+async function loadData() {
+    try {
+        const remoteData = await apiGetData();
+        if (remoteData && remoteData.dishes) {
+            state.dishes = remoteData.dishes;
+            state.weeklyMenus = remoteData.weeklyMenus || {};
+            state.publishedWeeks = remoteData.publishedWeeks || {};
+        } else {
+            state.dishes = [...DEFAULT_DISHES];
+            state.weeklyMenus = {};
+            state.publishedWeeks = {};
+            await saveData();
+        }
+        state.lastUpdateTime = await apiGetUpdateTime();
+    } catch (e) {
+        console.error("加载后端数据失败", e);
+        state.dishes = [...DEFAULT_DISHES];
+        state.weeklyMenus = {};
+        state.publishedWeeks = {};
+    }
+}
+async function saveData() {
+    const fullStore = {
+        dishes: state.dishes,
+        weeklyMenus: state.weeklyMenus,
+        publishedWeeks: state.publishedWeeks
+    };
+    await apiSetData(fullStore);
+    state.lastUpdateTime = await apiGetUpdateTime();
+}
+
+// 实时轮询3秒同步一次数据
+function startRealtimePoll() {
+    if (state.realtimeTimer) clearInterval(state.realtimeTimer);
+    state.realtimeTimer = setInterval(async () => {
+        try {
+            const newTime = await apiGetUpdateTime();
+            if (newTime > state.lastUpdateTime) {
+                state.lastUpdateTime = newTime;
+                await loadData();
+                renderWeek();
+                renderMenu();
+                showToast("菜单已同步最新数据", "success");
+            }
+        } catch (err) {}
+    }, 3000);
+}
+
+// 工具函数
+function getWeekKey(date) {
+    const d = new Date(date);
+    const monday = new Date(d);
+    const day = d.getDay() || 7;
+    monday.setDate(d.getDate() - day + 1);
+    const year = monday.getFullYear();
+    const firstDay = new Date(year, 0, 1);
+    const weekNum = Math.ceil(((monday - firstDay) / 86400000 + firstDay.getDay() + 1) / 7);
+    return `${year}-W${String(weekNum).padStart(2, '0')}`;
+}
+function getWeekDates(offset = 0) {
+    const today = new Date();
+    const day = today.getDay() || 7;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - day + 1 + offset * 7);
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        dates.push(d);
+    }
+    return dates;
+}
+function formatDate(date) {
+    return `${date.getMonth() + 1}月${date.getDate()}`;
+}
+function formatDateShort(date) {
+    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+}
+function isToday(date) {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear();
+}
+function getWeekNumber(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+function getDishById(id) {
+    return state.dishes.find(d => d.id === id);
+}
+function showToast(msg, type = 'default') {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    if (type === 'error') toast.style.background = '#BC4749';
+    else if (type === 'success') toast.style.background = '#6A994E';
+    else toast.style.background = '#1A1A1A';
+    setTimeout(() => toast.classList.remove('show'), 2500);
+}
+function getCurrentWeekKey() {
+    const dates = getWeekDates(state.currentWeekOffset);
+    const monday = dates[0];
+    return getWeekKey(monday);
+}
+function hasWeekDishes(weekKey) {
+    const menu = state.weeklyMenus[weekKey];
+    if (!menu) return false;
+    for (const day in menu) {
+        for (const type in menu[day]) {
+            if (menu[day][type]) return true;
+        }
+    }
+    return false;
+}
+function isCurrentWeekPublished() {
+    const weekKey = getCurrentWeekKey();
+    return !!state.publishedWeeks[weekKey];
+}
+async function markCurrentWeekUnpublished() {
+    const weekKey = getCurrentWeekKey();
+    if (state.publishedWeeks[weekKey]) {
+        delete state.publishedWeeks[weekKey];
+        state.hasUnsaved = true;
+        await saveData();
+        updatePublishBadge();
+    } else if (hasWeekDishes(weekKey)) {
+        state.hasUnsaved = true;
+        updatePublishBadge();
+    }
+}
+function updatePublishBadge() {
+    const weekKey = getCurrentWeekKey();
+    const pub = state.publishedWeeks[weekKey];
+    const hasDishes = hasWeekDishes(weekKey);
+    const badgePub = document.getElementById('publishBadge');
+    const badgeUnpub = document.getElementById('publishBadge');
+    if (pub) {
+        badgePub.classList.remove('hidden');
+        badgeUnpub.classList.add('hidden');
+    } else if (hasDishes) {
+        badgePub.classList.add('hidden');
+        badgeUnpub.classList.remove('hidden');
+    } else {
+        badgePub.classList.add('hidden');
+        badgeUnpub.classList.add('hidden');
+    }
+}
+function openLoginModal() {
+    document.getElementById('loginModal').classList.remove('hidden');
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginUsername').focus();
+}
+function closeLoginModal() {
+    document.getElementById('loginModal').classList.add('hidden');
+}
+function doLogin() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    if (!username || !password) {
+        showToast('请输入账号和密码', 'error');
+        return;
+    }
+    if (username === 'kebao' && password === 'kebao@4083789') {
+        state.isAdmin = true;
+        localStorage.setItem("isAdmin", "true"); // 【修复4】持久化登录
+        closeLoginModal();
+        updateUI();
+        showToast('管理员登录成功', 'success');
+    } else {
+        showToast('账号或密码错误', 'error');
+    }
+}
+function logout() {
+    const weekKey = getCurrentWeekKey();
+    const hasDishes = hasWeekDishes(weekKey);
+    const isPublished = !!state.publishedWeeks[weekKey];
+    if (hasDishes && !isPublished) {
+        showConfirm(
+            '未保存的更改',
+            '当前周菜单尚未保存，退出后将丢失更改。确定要退出吗？',
+            () => {
+                state.isAdmin = false;
+                localStorage.removeItem("isAdmin"); // 清除登录缓存
+                state.hasUnsaved = false;
+                updateUI();
+                switchPage('weekly');
+                showToast('已退出登录');
+            },
+            '确认退出'
+        );
+        return;
+    }
+    state.isAdmin = false;
+    localStorage.removeItem("isAdmin");
+    state.hasUnsaved = false;
+    updateUI();
+    switchPage('weekly');
+    showToast('已退出登录');
+}
+function updateUI() {
+    const adminElements = document.querySelectorAll('.admin-only');
+    const loginBtn = document.getElementById('loginBtn');
+    const userMenu = document.getElementById('userMenu');
+    if (state.isAdmin) {
+        adminElements.forEach(el => el.classList.remove('visitor-hidden'));
+        loginBtn.classList.add('hidden');
+        userMenu.classList.remove('hidden');
+        userMenu.classList.add('flex');
+    } else {
+        adminElements.forEach(el => el.classList.add('visitor-hidden'));
+        loginBtn.classList.remove('hidden');
+        userMenu.classList.add('hidden');
+        userMenu.classList.remove('flex');
+    }
+    if (state.currentPage === 'menu') {
+        // 【修复1】切换菜单页清空搜索框
+        document.getElementById("searchInput").value = "";
+        renderMenu();
+    } else renderWeek();
+}
+function switchPage(page) {
+    if (!state.isAdmin && page === 'menu') {
+        showToast('请先登录管理员账号', 'error');
+        openLoginModal();
+        return;
+    }
+    state.currentPage = page;
+    document.querySelectorAll('.page-content').forEach(el => el.classList.remove('active'));
+    document.getElementById(`page-${page}`).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`nav-${page}`).classList.add('active');
+    if (page === 'menu') {
+        document.getElementById("searchInput").value = ""; // 修复1
+        renderMenu();
+    } else renderWeek();
+}
+function changeWeek(delta) {
+    state.currentWeekOffset += delta;
+    renderWeek();
+}
+function goToThisWeek() {
+    state.currentWeekOffset = 0;
+    renderWeek();
+}
+function renderWeek() {
+    const dates = getWeekDates(state.currentWeekOffset);
+    const monday = dates[0];
+    const sunday = dates[6];
+    const weekKey = getWeekKey(monday);
+    const weekNum = getWeekNumber(monday);
+    const year = monday.getFullYear();
+    document.getElementById('weekTitle').textContent = `${year}年第${weekNum}周菜单`;
+    document.getElementById('weekRange').textContent = `${formatDate(monday)} - ${formatDate(sunday)}`;
+    document.getElementById('weekNumber').textContent = `· 第${weekNum}`;
+    const isPublished = !!state.publishedWeeks[weekKey];
+    const hasDishes = hasWeekDishes(weekKey);
+    updatePublishBadge();
+    const grid = document.getElementById('weekGrid');
+    if (!state.isAdmin && !isPublished) {
+        grid.innerHTML = `
+            <div class="col-span-full empty-state">
+                <div class="icon-wrap"><i class="fa-solid fa-calendar-xmark"></i></div>
+                <h3 class="text-xl font-bold text-[#1A1A1A] mb-2">暂无已发布的菜单</h3>
+                <p class="text-sm text-[#8A8A8A] mb-4">当前周菜单尚未发布，请返回查看已发布的菜单</p>
+                <button onclick="goToThisWeek()" class="btn-primary px-6 py-2.5 rounded-2xl font-medium inline-flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i>返回本周
+                </button>
+            </div>`;
+        document.getElementById('statTotal').textContent = '0';
+        document.getElementById('statVeg').textContent = '0';
+        document.getElementById('statMeat').textContent = '0';
+        return;
+    }
+    const weekMenu = state.weeklyMenus[weekKey] || {};
+    const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    let totalDishes = 0, vegCount = 0, meatCount = 0;
+    grid.innerHTML = '';
+    dates.forEach((date, idx) => {
+        const dayName = dayNames[idx];
+        const dayMenu = weekMenu[dayName] || {};
+        const today = isToday(date);
+        const card = document.createElement('div');
+        card.className = `day-card card-shadow ${today ? 'today' : ''}`;
+        const slots = ['素菜', '小荤', '大荤'];
+        const slotsHtml = slots.map(type => {
+            const dishId = dayMenu[type];
+            const dish = dishId ? getDishById(dishId) : null;
+            if (dish) {
+                totalDishes++;
+                if (type === '素菜') vegCount++;
+                else meatCount++;
+                const tagClass = type === '素菜' ? 'tag-veg' : type === '小荤' ? 'tag-meat' : 'tag-big-meat';
+                const icon = type === '素菜' ? 'fa-leaf' : type === '小荤' ? 'fa-bacon' : 'fa-drumstick-bite';
+                const removeBtn = state.isAdmin ? `
+                    <button class="opacity-0 group-hover:opacity-100 transition w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-[#BC4749] hover:bg-[#F7DEDD]" onclick="event.stopPropagation(); removeDishFromWeek('${weekKey}', '${dayName}', '${type}')">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>` : '';
+                return `
+                    <div class="dish-slot group relative" ${state.isAdmin ? `onclick="removeDishFromWeek('${weekKey}', '${dayName}', '${type}')"` : ''}>
+                        <div class="flex gap-3 p-2 rounded-xl ${state.isAdmin ? 'hover:bg-[#FAF6EF] cursor-pointer' : ''} transition">
+                            <div class="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 dish-image">
+                                ${dish.image ? `<img src="${dish.image}" alt="${dish.name}" loading="lazy" onerror="this.style.display='none'">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-[#8A8A8A]"></i></div>`}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-1.5 mb-0.5">
+                                    <span class="text-[10px] font-medium px-1.5 rounded ${tagClass}">${type}</span>
+                                </div>
+                                <p class="font-semibold text-sm text-[#1A1A1A] truncate">${dish.name}</p>
+                                <p class="text-xs text-[#8A8A8A] truncate mt-0.5">${dish.ingredients || '—'}</p>
+                            </div>
+                            ${removeBtn}
+                        </div>
+                    </div>`;
+            } else {
+                if (state.isAdmin) return `<div onclick="openSelectDish('${weekKey}', '${dayName}', '${type}')" class="dish-empty rounded-xl p-3 flex items-center justify-center gap-2 h-[72px]"><i class="fa-solid fa-plus text-xs text-[#8A8A8A]"></i><span class="text-xs text-[#8A8A8A]">添加${type}</span></div>`;
+                else return `<div class="rounded-xl p-3 flex items-center justify-center gap-2 h-[72px] border border-dashed border-[#ECE5D8]"><span class="text-xs text-[#C8C0B0]">暂无${type}</span></div>`;
+            }
+        }).join('');
+        card.innerHTML = `
+            <div class="p-4 ${today ? 'bg-gradient-to-r from-[#C73E1D] to-[#E85D2C]' : 'bg-[#FAF6EF]'} border-b border-[#ECE5D8]">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs ${today ? 'text-white/80' : 'text-[#8A8A8A]'}">${formatDateShort(date)}</p>
+                        <p class="text-base font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${dayName}${today ? ' · 今天' : ''}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl ${today ? 'bg-white/20' : 'bg-white'} flex items-center justify-center">
+                        <span class="text-sm font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${date.getDate()}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-2 space-y-1">${slotsHtml}</div>`;
+        grid.appendChild(card);
+    });
+    document.getElementById('statTotal').textContent = totalDishes;
+    document.getElementById('statVeg').textContent = vegCount;
+    document.getElementById('statMeat').textContent = meatCount;
+}
+function openSelectDish(weekKey, day, type) {
+    if (!state.isAdmin) return;
+    state.selectContext = { weekKey, day, type };
+    document.getElementById('selectDishModal').classList.remove('hidden');
+    document.getElementById('selectSearchInput').value = '';
+    renderSelectDishList();
+}
+function closeSelectDish() {
+    document.getElementById('selectDishModal').classList.add('hidden');
+    state.selectContext = null;
+}
+function renderSelectDishList() {
+    const { weekKey, day, type } = state.selectContext;
+    const search = document.getElementById('selectSearchInput').value.trim().toLowerCase();
+    const weekMenu = state.weeklyMenus[weekKey] || {};
+    const usedIds = new Set();
+    Object.values(weekMenu).forEach(dayMenu => Object.values(dayMenu).forEach(id => { if (id) usedIds.add(id); }));
+    let list = state.dishes.filter(d => d.category === type);
+    if (search) list = list.filter(d => d.name.toLowerCase().includes(search) || (d.ingredients || '').toLowerCase().includes(search));
+    const listEl = document.getElementById('selectDishList');
+    if (list.length === 0) {
+        listEl.innerHTML = `<div class="text-center py-10 text-[#8A8A8A]"><i class="fa-solid fa-utensils text-3xl mb-2"></i><p class="text-sm">没有找到匹配的菜品</p><button onclick="closeSelectDish(); switchPage('menu'); openDishForm();" class="mt-3 text-sm text-[#C73E1D] hover:underline">去添加新菜品 →</button></div>`;
+        return;
+    }
+    listEl.innerHTML = list.map(dish => {
+        const used = usedIds.has(dish.id);
+        return `
+            <div onclick="${used ? '' : `selectDishForWeek(${dish.id})`}" class="flex items-center gap-3 p-3 rounded-2xl border ${used ? 'border-[#ECE5D8] bg-[#FAF6EF] opacity-60' : 'border-[#ECE5D8] hover:border-[#C73E1D] hover:bg-[#FAF6EF] cursor-pointer'} transition">
+                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 dish-image">
+                    ${dish.image ? `<img src="${dish.image}" loading="lazy" onerror="this.style.display='none'">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid fa-utensils text-[#8A8A8A]"></i></div>`}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <p class="font-semibold text-sm text-[#1A1A1A] truncate">${dish.name}</p>
+                        ${used ? '<span class="text-[10px] text-[#BC4749]">本周已用</span>' : ''}
+                    </div>
+                    <p class="text-xs text-[#8A8A8A] truncate">${dish.ingredients || '—'}</p>
+                </div>
+                ${used ? '<i class="fa-solid fa-lock text-[#8A8A8A]"></i>' : '<i class="fa-solid fa-chevron-right text-[#8A8A8A]"></i>'}
+            </div>`;
+    }).join('');
+}
+async function selectDishForWeek(dishId) {
+    const { weekKey, day, type } = state.selectContext;
+    if (!state.weeklyMenus[weekKey]) state.weeklyMenus[weekKey] = {};
+    if (!state.weeklyMenus[weekKey][day]) state.weeklyMenus[weekKey][day] = {};
+    state.weeklyMenus[weekKey][day] = dishId;
+    await markCurrentWeekUnpublished();
+    closeSelectDish();
+    renderWeek();
+    showToast('菜品已添加', 'success');
+}
+async function removeDishFromWeek(weekKey, day, type) {
+    if (!state.isAdmin) return;
+    if (state.weeklyMenus[weekKey] && state.weeklyMenus[weekKey][day]) {
+        delete state.weeklyMenus[weekKey][day][type];
+        await markCurrentWeekUnpublished();
+        renderWeek();
+        showToast('菜品已移除');
+    }
+}
+async function autoArrange() {
+    if (!state.isAdmin) return;
+    const dates = getWeekDates(state.currentWeekOffset);
+    const monday = dates[0];
+    const weekKey = getWeekKey(monday);
+    const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const vegDishes = state.dishes.filter(d => d.category === '素菜');
+    const meatDishes = state.dishes.filter(d => d.category === '小荤');
+    const bigMeatDishes = state.dishes.filter(d => d.category === '大荤');
+    if (vegDishes.length < 7 || meatDishes.length < 7 || bigMeatDishes.length < 7) {
+        showToast('菜品库不足，每类至少需要7道菜', 'error');
+        return;
+    }
+    const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
+    const veg = shuffle(vegDishes).slice(0, 7);
+    const meat = shuffle(meatDishes).slice(0, 7);
+    const bigMeat = shuffle(bigMeatDishes).slice(0, 7);
+    const newWeekMenu = {};
+    dayNames.forEach((day, i) => {
+        newWeekMenu[day] = { '素菜': veg[i].id, '小荤': meat[i].id, '大荤': bigMeat[i].id };
+    });
+    state.weeklyMenus[weekKey] = newWeekMenu;
+    await markCurrentWeekUnpublished();
+    renderWeek();
+    showToast('已为您智能排菜，请记得保存', 'success');
+}
+async function saveWeekMenu() {
+    if (!state.isAdmin) return;
+    const weekKey = getCurrentWeekKey();
+    const hasDishes = hasWeekDishes(weekKey);
+    if (!hasDishes) {
+        showToast('菜单为空，无法保存', 'error');
+        return;
+    }
+    state.publishedWeeks[weekKey] = true;
+    state.hasUnsaved = false;
+    await saveData();
+    renderWeek();
+    updatePublishBadge();
+    showToast('本周菜单已发布，访客可见', 'success');
+}
+function clearWeekMenu() {
+    if (!state.isAdmin) return;
+    const weekKey = getCurrentWeekKey();
+    const hasDishes = hasWeekDishes(weekKey);
+    if (!hasDishes && !state.publishedWeeks[weekKey]) {
+        showToast('本周菜单已经为空', 'error');
+        return;
+    }
+    showConfirm(
+        '清除本周菜单',
+        '确定要清空本周所有菜品吗？此操作不可撤销。',
+        async () => {
+            delete state.weeklyMenus[weekKey];
+            delete state.publishedWeeks[weekKey];
+            state.hasUnsaved = false;
+            await saveData();
+            renderWeek();
+            updatePublishBadge();
+            showToast('本周菜单已清除', 'success');
+        }
+    );
+}
+function filterCategory(cat) {
+    state.menuFilter = cat;
+    document.getElementById("searchInput").value = ""; // 修复1
+    document.querySelectorAll('[data-cat]').forEach(btn => btn.classList.toggle('active', btn.dataset.cat === cat));
+    renderMenu();
+}
+function renderMenu() {
+    const search = document.getElementById('searchInput').value.trim().toLowerCase();
+    let list = state.dishes;
+    if (state.menuFilter !== 'all') list = list.filter(d => d.category === state.menuFilter);
+    if (search) list = list.filter(d => d.name.toLowerCase().includes(search) || (d.ingredients || '').toLowerCase().includes(search));
+    document.getElementById('totalDishCount').textContent = state.dishes.length;
+    const grid = document.getElementById('menuGrid');
+    const empty = document.getElementById('emptyMenu');
+    if (state.dishes.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+    if (list.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-16 text-[#8A8A8A]"><i class="fa-solid fa-search text-3xl mb-2"></i><p class="text-sm">没有找到匹配的菜品</p></div>`;
+        return;
+    }
+    grid.innerHTML = list.map(dish => {
+        const tagClass = dish.category === '素菜' ? 'tag-veg' : dish.category === '小荤' ? 'tag-meat' : dish.category === '大荤' ? 'tag-big-meat' : 'tag-soup';
+        const icon = dish.category === '素菜' ? 'fa-leaf' : dish.category === '小荤' ? 'fa-bacon' : dish.category === '大荤' ? 'fa-drumstick-bite' : 'fa-mug-hot';
+        const actionButtons = state.isAdmin ? `
+            <div class="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition">
+                <button onclick="openDishForm(${dish.id})" class="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-[#1A1A1A] hover:bg-white shadow-sm">
+                    <i class="fa-solid fa-pen text-xs"></i>
+                </button>
+                <button onclick="deleteDish(${dish.id})" class="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-[#BC4749] hover:bg-white shadow-sm">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+            </div>` : '';
+        return `
+            <div class="bg-white rounded-2xl overflow-hidden border border-[#ECE5D8] card-shadow card-shadow-hover transition group">
+                <div class="relative aspect-[4/3] overflow-hidden dish-image">
+                    ${dish.image ? `<img src="${dish.image}" loading="lazy" onerror="this.style.display='none'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-[#D4C9B5]"></i></div>`}
+                    <span class="absolute top-3 left-3 text-xs font-medium px-2 py-1 rounded-full ${tagClass} bg-white/90 backdrop-blur-sm">
+                        <i class="fa-solid ${icon} mr-1 text-[10px]"></i>${dish.category}
+                    </span>
+                    ${actionButtons}
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-base text-[#1A1A1A] mb-1 truncate">${dish.name}</h3>
+                    <div class="flex items-start gap-1.5 text-xs text-[#8A8A8A]">
+                        <i class="fa-solid fa-basket-shopping mt-0.5 text-[#C73E1D]"></i>
+                        <span class="line-clamp-2">${dish.ingredients || '暂无食材信息'}</span>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+}
+function openDishForm(dishId) {
+    if (!state.isAdmin) return;
+    const modal = document.getElementById('dishFormModal');
+    const title = document.getElementById('dishFormTitle');
+    if (dishId) {
+        state.editingDishId = dishId;
+        const dish = getDishById(dishId);
+        title.textContent = '编辑菜品';
+        document.getElementById('dishName').value = dish.name;
+        document.getElementById('dishImage').value = dish.image || '';
+        document.getElementById('dishIngredients').value = dish.ingredients || '';
+        state.selectedCategory = dish.category;
+    } else {
+        state.editingDishId = null;
+        title.textContent = '添加菜品';
+        document.getElementById('dishName').value = '';
+        document.getElementById('dishImage').value = '';
+        document.getElementById('dishIngredients').value = '';
+        state.selectedCategory = null;
+    }
+    document.querySelectorAll('#categorySelector .category-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.cat === state.selectedCategory);
+    });
+    previewDishImage();
+    modal.classList.remove('hidden');
+}
+function closeDishForm() {
+    document.getElementById('dishFormModal').classList.add('hidden');
+    state.editingDishId = null;
+    state.selectedCategory = null;
+}
+function selectDishCategory(btn) {
+    document.querySelectorAll('#categorySelector .category-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.selectedCategory = btn.dataset.cat;
+}
+function previewDishImage() {
+    const url = document.getElementById('dishImage').value.trim();
+    const img = document.getElementById('dishImagePreview');
+    const placeholder = document.getElementById('dishImagePlaceholder');
+    if (url) {
+        img.src = url;
+        img.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+    } else {
+        img.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+    }
+}
+// 已删除本地图片上传函数
+async function saveDish() {
+    if (!state.isAdmin) return;
+    const name = document.getElementById('dishName').value.trim();
+    const image = document.getElementById('dishImage').value.trim();
+    const ingredients = document.getElementById('dishIngredients').value.trim();
+    const category = state.selectedCategory;
+    if (!name) { showToast('请输入菜品名称', 'error'); return; }
+    if (!category) { showToast('请选择菜品分类', 'error'); return; }
+    if (state.editingDishId) {
+        const dish = getDishById(state.editingDishId);
+        dish.name = name;
+        dish.image = image;
+        dish.ingredients = ingredients;
+        dish.category = category;
+        showToast('菜品已更新', 'success');
+    } else {
+        const newId = Date.now();
+        state.dishes.push({ id: newId, name, image, ingredients, category });
+        showToast('菜品已添加', 'success');
+    }
+    await saveData();
+    await loadData(); // 【修复3】保存后重新拉取云端数据
+    renderMenu();
+    closeDishForm(); // 【修复2】保存后关闭弹窗
+}
+function deleteDish(dishId) {
+    if (!state.isAdmin) return;
+    const dish = getDishById(dishId);
+    if (!dish) return;
+    let usedInWeeks = [];
+    Object.entries(state.weeklyMenus).forEach(([weekKey, weekMenu]) => {
+        Object.entries(weekMenu).forEach(([day, dayMenu]) => {
+            Object.entries(dayMenu).forEach(([type, id]) => { if (id === dishId) usedInWeeks.push(weekKey); });
+        });
+    });
+    showConfirm(
+        '删除菜品',
+        `确定要删除「${dish.name}」吗？${usedInWeeks.length > 0 ? `该菜品已在 ${usedInWeeks.length} 个周菜单中使用，删除后将自动移除。` : ''}`,
+        async () => {
+            state.dishes = state.dishes.filter(d => d.id !== dishId);
+            Object.entries(state.weeklyMenus).forEach(([weekKey, weekMenu]) => {
+                Object.entries(weekMenu).forEach(([day, dayMenu]) => {
+                    Object.entries(dayMenu).forEach(([type, id]) => { if (id === dishId) delete state.weeklyMenus[weekKey][type]; });
+                });
+            });
+            await saveData();
+            await loadData(); // 【修复3】删除后同步云端
+            renderMenu();
+            renderWeek();
+            showToast('菜品已删除', 'success');
+        }
+    );
+}
+function showConfirm(title, message, callback, confirmText = '确认') {
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMessage').textContent = message;
+    document.getElementById('confirmModal').classList.remove('hidden');
+    const btn = document.getElementById('confirmBtn');
+    btn.textContent = confirmText;
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.addEventListener('click', () => {
+        callback();
+        closeConfirm();
+    });
+}
+function closeConfirm() {
+    document.getElementById('confirmModal').classList.add('hidden');
+}
+function checkUnsavedBeforeUnload() {
+    const weekKey = getCurrentWeekKey();
+    const hasDishes = hasWeekDishes(weekKey);
+    const isPublished = !!state.publishedWeeks[weekKey];
+    if (hasDishes && !isPublished) {
+        return '当前周菜单尚未保存，确定要离开吗？';
+    }
+}
+window.addEventListener('beforeunload', e => {
+    const msg = checkUnsavedBeforeUnload();
+    if (msg) e.returnValue = msg;
+});
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) {
+            if (overlay.id === 'dishFormModal') closeDishForm();
+            if (overlay.id === 'selectDishModal') closeSelectDish();
+            if (overlay.id === 'confirmModal') closeConfirm();
+            if (overlay.id === 'loginModal') closeLoginModal();
+        }
+    });
+});
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeDishForm();
+        closeSelectDish();
+        closeConfirm();
+        closeLoginModal();
+    }
+});
+(async function init() {
+    checkAccessKey();
+    restoreAdminLogin(); // 修复4：读取本地登录状态
+    await loadData();
+    updateUI();
+    renderWeek();
+    renderMenu();
+    startRealtimePoll();
+})();
+</script>
+</body>
+</html>
