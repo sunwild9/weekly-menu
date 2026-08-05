@@ -16,11 +16,11 @@
             --primary: #C73E1D;
             --primary-light: #E85D2C;
             --accent: #F4A261;
-            --bg: #FAF6EF;
-            --bg-card: #FFFFFF;
+            --bg: #FFF7EB;
+            --bg-card: #FFF9ED;
             --bg-soft: #F4EDE0;
-            --border: #ECE5D8;
-            --dark: #1A1A1A;
+            --border: #E6D2BC;
+            --dark: #2C1F16;
             --veg: #6A994E;
             --meat: #F4A261;
             --big-meat: #BC4749;
@@ -398,9 +398,6 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
                     <div class="flex items-center gap-2 mb-1 flex-wrap">
-                        <span class="inline-flex items-center px-3 py-1 bg-[#C73E1D] text-white text-xs font-semibold rounded-full">
-                            <i class="fa-solid fa-circle text-[8px] mr-1.5 animate-pulse"></i>当前周
-                        </span>
                         <span class="text-sm text-[#8A8A8A]" id="weekRange"></span>
                         <span class="text-sm font-medium text-[#C73E1D]" id="weekNumber"></span>
                         <!-- 发布状态标签 -->
@@ -411,7 +408,7 @@
                             <i class="fa-solid fa-clock mr-1"></i>未发布
                         </span>
                     </div>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-[#1A1A1A]" id="weekTitle"></h2>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-[#1A1A1A]" id="weekTitle"></h2>
                 </div>
 
                 <div class="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-[#ECE5D8]">
@@ -512,7 +509,7 @@
 
                 <div class="ml-auto relative">
                     <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#8A8A8A] text-sm"></i>
-                    <input type="text" id="searchInput" placeholder="搜索菜品..." oninput="renderMenu()" class="pl-9 pr-4 py-2 rounded-full border border-[#ECE5D8] bg-white text-sm w-48 sm:w-64 focus:outline-none focus:border-[#C73E1D]">
+                    <input autocomplete="off" type="text" id="searchInput" placeholder="搜索菜品..." oninput="renderMenu()" class="pl-9 pr-4 py-2 rounded-full border border-[#ECE5D8] bg-white text-sm w-48 sm:w-64 focus:outline-none focus:border-[#C73E1D]">
                 </div>
             </div>
 
@@ -858,7 +855,7 @@ function formatDate(date) {
     return `${date.getMonth() + 1}月${date.getDate()}`;
 }
 function formatDateShort(date) {
-    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}日`;
 }
 function isToday(date) {
     const today = new Date();
@@ -1019,8 +1016,10 @@ function switchPage(page) {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`nav-${page}`).classList.add('active');
     if (page === 'menu') {
-        document.getElementById("searchInput").value = ""; // 修复1
-        renderMenu();
+       const searchDom = document.getElementById("searchInput");
+       searchDom.value = "";
+       searchDom.autocomplete = "off";
+       renderMenu();
     } else renderWeek();
 }
 function changeWeek(delta) {
@@ -1070,7 +1069,7 @@ function renderWeek() {
         const today = isToday(date);
         const card = document.createElement('div');
         card.className = `day-card card-shadow ${today ? 'today' : ''}`;
-        const slots = ['素菜', '小荤', '大荤'];
+        const slots = ['素菜', '小荤', '大荤', '汤品'];
         const slotsHtml = slots.map(type => {
             const dishId = dayMenu[type];
             const dish = dishId ? getDishById(dishId) : null;
@@ -1078,8 +1077,11 @@ function renderWeek() {
                 totalDishes++;
                 if (type === '素菜') vegCount++;
                 else meatCount++;
-                const tagClass = type === '素菜' ? 'tag-veg' : type === '小荤' ? 'tag-meat' : 'tag-big-meat';
-                const icon = type === '素菜' ? 'fa-leaf' : type === '小荤' ? 'fa-bacon' : 'fa-drumstick-bite';
+                let tagClass, icon;
+                if(type === '素菜'){ tagClass = 'tag-veg'; icon = 'fa-leaf'; }
+                else if(type === '小荤'){ tagClass = 'tag-meat'; icon = 'fa-bacon'; }
+                else if(type === '大荤'){ tagClass = 'tag-big-meat'; icon = 'fa-drumstick-bite'; }
+                else if(type === '汤品'){ tagClass = 'tag-soup'; icon = 'fa-mug-hot'; }
                 const removeBtn = state.isAdmin ? `
                     <button class="opacity-0 group-hover:opacity-100 transition w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-[#BC4749] hover:bg-[#F7DEDD]" onclick="event.stopPropagation(); removeDishFromWeek('${weekKey}', '${dayName}', '${type}')">
                         <i class="fa-solid fa-xmark text-xs"></i>
@@ -1113,7 +1115,7 @@ function renderWeek() {
                         <p class="text-base font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${dayName}${today ? ' · 今天' : ''}</p>
                     </div>
                     <div class="w-10 h-10 rounded-xl ${today ? 'bg-white/20' : 'bg-white'} flex items-center justify-center">
-                        <span class="text-sm font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${date.getDate()}</span>
+                        <span class="text-xl font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${date.getDate()}</span>
                     </div>
                 </div>
             </div>
@@ -1250,7 +1252,9 @@ function clearWeekMenu() {
 }
 function filterCategory(cat) {
     state.menuFilter = cat;
-    document.getElementById("searchInput").value = ""; // 修复1
+    const searchDom = document.getElementById("searchInput");
+    searchDom.value = "";
+    searchDom.autocomplete = "off";
     document.querySelectorAll('[data-cat]').forEach(btn => btn.classList.toggle('active', btn.dataset.cat === cat));
     renderMenu();
 }
