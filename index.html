@@ -16,11 +16,11 @@
             --primary: #C73E1D;
             --primary-light: #E85D2C;
             --accent: #F4A261;
-            --bg: #FFF7EB;
-            --bg-card: #FFF9ED;
+            --bg: #FAF6EF;
+            --bg-card: #FFFFFF;
             --bg-soft: #F4EDE0;
-            --border: #E6D2BC;
-            --dark: #2C1F16;
+            --border: #ECE5D8;
+            --dark: #1A1A1A;
             --veg: #6A994E;
             --meat: #F4A261;
             --big-meat: #BC4749;
@@ -400,6 +400,8 @@
                     <div class="flex items-center gap-2 mb-1 flex-wrap">
                         <span class="text-sm text-[#8A8A8A]" id="weekRange"></span>
                         <span class="text-sm font-medium text-[#C73E1D]" id="weekNumber"></span>
+                        <!-- 新增当前周标签 -->
+                        <span id="currentWeekBadge" class="text-sm bg-[#C73E1D] text-white px-2 py-0.5 rounded-lg hidden">当前周</span>
                         <!-- 发布状态标签 -->
                         <span id="publishBadge" class="publish-badge published hidden">
                             <i class="fa-solid fa-check-circle mr-1"></i>已发布
@@ -481,8 +483,14 @@
         <section id="page-menu" class="page-content">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">总菜单库</h2>
-                    <p class="text-sm text-[#8A8A8A] mt-1">共 <span id="totalDishCount">0</span> 道菜品 · 管理你的菜品素材</p>
+                      <h2 class="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">总菜单库</h2>
+                      <p class="text-sm text-[#8A8A8A] mt-1">
+                            共 <span id="totalDishCount">0</span> 道菜品 · 
+                           <span style="color:#6A994E">素菜:<span id="countVeg">0</span></span> · 
+                           <span style="color:#F4A261">小荤:<span id="countSmallMeat">0</span></span> · 
+                           <span style="color:#BC4749">大荤:<span id="countBigMeat">0</span></span> · 
+                           <span style="color:#8A8A8A">汤品:<span id="countSoup">0</span></span>
+                     </p>
                 </div>
                 <button onclick="openDishForm()" class="btn-primary px-5 py-2.5 rounded-2xl font-medium flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i>添加新菜品
@@ -852,10 +860,10 @@ function getWeekDates(offset = 0) {
     return dates;
 }
 function formatDate(date) {
-    return `${date.getMonth() + 1}月${date.getDate()}`;
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
 }
 function formatDateShort(date) {
-    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}日`;
+    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
 }
 function isToday(date) {
     const today = new Date();
@@ -1039,9 +1047,17 @@ function renderWeek() {
     const year = monday.getFullYear();
     document.getElementById('weekTitle').textContent = `${year}年第${weekNum}周菜单`;
     document.getElementById('weekRange').textContent = `${formatDate(monday)} - ${formatDate(sunday)}`;
-    document.getElementById('weekNumber').textContent = `· 第${weekNum}`;
+    document.getElementById('weekNumber').textContent = `· 第${weekNum}周`;
     const isPublished = !!state.publishedWeeks[weekKey];
     const hasDishes = hasWeekDishes(weekKey);
+   // ========== 下面这4行是你要新增粘贴的代码 ==========
+    const currentWeekBadge = document.getElementById('currentWeekBadge');
+    if (state.currentWeekOffset === 0) {
+        currentWeekBadge.classList.remove('hidden');
+    } else {
+        currentWeekBadge.classList.add('hidden');
+    }
+    // ========== 新增代码结束 ==========
     updatePublishBadge();
     const grid = document.getElementById('weekGrid');
     if (!state.isAdmin && !isPublished) {
@@ -1259,6 +1275,16 @@ function filterCategory(cat) {
     renderMenu();
 }
 function renderMenu() {
+    // 统计各类菜品总数
+    let countVeg = state.dishes.filter(d => d.category === '素菜').length;
+    let countSmallMeat = state.dishes.filter(d => d.category === '小荤').length;
+    let countBigMeat = state.dishes.filter(d => d.category === '大荤').length;
+    let countSoup = state.dishes.filter(d => d.category === '汤品').length;
+    // 赋值到页面
+    document.getElementById('countVeg').textContent = countVeg;
+    document.getElementById('countSmallMeat').textContent = countSmallMeat;
+    document.getElementById('countBigMeat').textContent = countBigMeat;
+    document.getElementById('countSoup').textContent = countSoup;
     const search = document.getElementById('searchInput').value.trim().toLowerCase();
     let list = state.dishes;
     if (state.menuFilter !== 'all') list = list.filter(d => d.category === state.menuFilter);
