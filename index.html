@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex,nofollow,noarchive">
     <meta name="googlebot" content="noindex,nofollow">
     <meta name="baidu-spider" content="noindex,nofollow">
@@ -340,6 +340,29 @@
             background: #FDE8D0;
             color: #C97A2A;
         }
+    /* 手机全局适配补充 */
+    @media (max-width: 640px) {
+        h2.text-3xl, h2.text-2xl {
+            font-size: 1.5rem !important;
+        }
+        .day-card p.text-base {
+            font-size: 0.95rem;
+        }
+        .stat-card {
+            padding: 12px;
+        }
+        .stat-card p.text-2xl {
+            font-size: 1.5rem;
+        }
+        /* 菜品卡片缩小内边距 */
+        .menu-grid > div .p-4 {
+            padding: 12px;
+        }
+        /* 弹窗内间距缩小 */
+        .modal-content .p-6 {
+            padding: 16px !important;
+        }
+    }
     </style>
 </head>
 <body>
@@ -362,10 +385,10 @@
 
             <div class="flex items-center gap-2">
                 <nav class="flex items-center gap-1 sm:gap-2 bg-white/60 rounded-full p-1 border border-white/60">
-                    <button onclick="switchPage('weekly')" id="nav-weekly" class="nav-btn active px-4 sm:px-6 py-2 rounded-full text-sm font-medium">
+                    <button onclick="switchPage('weekly')" id="nav-weekly" class="nav-btn active px-2 sm:px-6 py-2 rounded-full text-sm font-medium">
                         <i class="fa-regular fa-calendar mr-1.5"></i>每周菜单
                     </button>
-                    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn px-4 sm:px-6 py-2 rounded-full text-sm font-medium text-[#8A8A8A] admin-only visitor-hidden">
+                    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn px-2 sm:px-6 py-2 rounded-full text-sm font-medium">
                         <i class="fa-solid fa-book-open mr-1.5"></i>总菜单
                     </button>
                 </nav>
@@ -427,7 +450,7 @@
             </div>
 
             <!-- 统计信息 -->
-            <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
                 <div class="stat-card">
                     <div>
                         <p class="text-xs text-[#8A8A8A] mb-1">总菜品</p>
@@ -464,15 +487,15 @@
 
             <!-- 操作按钮区（仅管理员） -->
             <div class="mt-6 flex flex-wrap items-center justify-center gap-3 admin-only visitor-hidden">
-                <button onclick="saveWeekMenu()" class="btn-success px-6 py-3 rounded-2xl font-medium flex items-center gap-2 shadow-sm">
+                <button onclick="saveWeekMenu()" class="btn-success px-4 sm:px-6 py-3 rounded-2xl font-medium flex items-center gap-2 shadow-sm">
                     <i class="fa-solid fa-floppy-disk"></i>
                     保存本周菜单
                 </button>
-                <button onclick="clearWeekMenu()" class="btn-outline-danger px-6 py-3 rounded-2xl font-medium flex items-center gap-2">
+                <button onclick="clearWeekMenu()" class="btn-outline-danger px-4 sm:px-6 py-3 rounded-2xl font-medium flex items-center gap-2">
                     <i class="fa-solid fa-trash"></i>
                     清除本周菜单
                 </button>
-                <button onclick="autoArrange()" class="btn-primary px-6 py-3 rounded-2xl font-medium flex items-center gap-2">
+                <button onclick="autoArrange()" class="btn-primary px-4 sm:px-6 py-3 rounded-2xl font-medium flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                     一键智能排菜
                 </button>
@@ -517,7 +540,7 @@
 
                 <div class="ml-auto relative">
                     <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#8A8A8A] text-sm"></i>
-                    <input autocomplete="off" type="text" id="searchInput" placeholder="搜索菜品..." oninput="renderMenu()" class="pl-9 pr-4 py-2 rounded-full border border-[#ECE5D8] bg-white text-sm w-48 sm:w-64 focus:outline-none focus:border-[#C73E1D]">
+                    <input autocomplete="off" type="text" id="searchInput" placeholder="搜索菜品..." oninput="renderMenu()" class="pl-9 pr-4 py-2 rounded-full border border-[#ECE5D8] bg-white text-sm w-full sm:w-64 focus:outline-none focus:border-[#C73E1D]">
                 </div>
             </div>
 
@@ -577,7 +600,7 @@
 
     <!-- ============== 菜品表单模态框 ============== -->
     <div id="dishFormModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md modal-content animate-scale-in">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-[92vw] modal-content animate-scale-in">
             <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between">
                 <h3 class="text-xl font-bold" id="dishFormTitle">添加菜品</h3>
                 <button onclick="closeDishForm()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
@@ -1119,7 +1142,7 @@ function renderWeek() {
                         </div>
                     </div>`;
             } else {
-                if (state.isAdmin) return `<div onclick="openSelectDish('${weekKey}', '${dayName}', '${type}')" class="dish-empty rounded-xl p-3 flex items-center justify-center gap-2 h-[72px]"><i class="fa-solid fa-plus text-xs text-[#8A8A8A]"></i><span class="text-xs text-[#8A8A8A]">添加${type}</span></div>`;
+                if (state.isAdmin) return `<div onclick="openSelectDish('${weekKey}', '${dayName}', '${type}')" class="dish-empty rounded-xl p-3 flex items-center justify-center gap-2"><i class="fa-solid fa-plus text-xs text-[#8A8A8A]"></i><span class="text-xs text-[#8A8A8A]">添加${type}</span></div>`;
                 else return `<div class="rounded-xl p-3 flex items-center justify-center gap-2 h-[72px] border border-dashed border-[#ECE5D8]"><span class="text-xs text-[#C8C0B0]">暂无${type}</span></div>`;
             }
         }).join('');
@@ -1188,7 +1211,7 @@ async function selectDishForWeek(dishId) {
     const { weekKey, day, type } = state.selectContext;
     if (!state.weeklyMenus[weekKey]) state.weeklyMenus[weekKey] = {};
     if (!state.weeklyMenus[weekKey][day]) state.weeklyMenus[weekKey][day] = {};
-    state.weeklyMenus[weekKey][day] = dishId;
+    state.weeklyMenus[weekKey][day][type] = dishId;
     await markCurrentWeekUnpublished();
     closeSelectDish();
     renderWeek();
