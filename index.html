@@ -1042,7 +1042,7 @@ function updatePublishBadge() {
     const pub = state.publishedWeeks[weekKey];
     const hasDishes = hasWeekDishes(weekKey);
     const badgePub = document.getElementById('publishBadge');
-    const badgeUnpub = document.getElementById('publishBadge');
+    const badgeUnpub = document.getElementById('publishBadgeUnpub');
     if (pub) {
         badgePub.classList.remove('hidden');
         badgeUnpub.classList.add('hidden');
@@ -1133,7 +1133,8 @@ function updateUI() {
     } else renderWeek();
 }
 function switchPage(page) {
-    if (!state.isAdmin && page === 'menu') {
+    // 新增全局拦截
+    if(page === 'menu' && !state.isAdmin){
         showToast('请先登录管理员账号', 'error');
         openLoginModal();
         return;
@@ -1146,7 +1147,6 @@ function switchPage(page) {
     if (page === 'menu') {
        const searchDom = document.getElementById("searchInput");
        searchDom.value = "";
-       searchDom.autocomplete = "off";
        renderMenu();
     } else renderWeek();
 }
@@ -1192,7 +1192,8 @@ function renderWeek() {
             </div>`;
         document.getElementById('statTotal').textContent = '0';
         document.getElementById('statVeg').textContent = '0';
-        document.getElementById('statMeat').textContent = '0';
+        document.getElementById('statSmallMeat').textContent = '0';
+        document.getElementById('statBigMeat').textContent = '0';
         return;
     }
     const weekMenu = state.weeklyMenus[weekKey] || {};
@@ -1246,19 +1247,20 @@ function renderWeek() {
                 else return `<div class="rounded-xl p-3 flex items-center justify-center gap-2 h-[72px] border border-dashed border-[#ECE5D8]"><span class="text-xs text-[#C8C0B0]">暂无${type}</span></div>`;
             }
         }).join('');
-        card.innerHTML = `
-            <div onclick="openDayPreview(${idx})" class="cursor-pointer p-4 ${today ? 'bg-gradient-to-r from-[#C73E1D] to-[#E85D2C]' : 'bg-[#FAF6EF]'} border-b border-[#ECE5D8]">
-    <div class="flex items-center justify-between">
-        <div>
-            <p class="text-xs ${today ? 'text-white/80' : 'text-[#8A8A8A]'}">${formatDateShort(date)}</p>
-            <p class="text-base font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${dayName}${today ? ' · 今天' : ''}</p>
-        </div>
-        <div class="w-10 h-10 rounded-xl ${today ? 'bg-white/20' : 'bg-white'} flex items-center justify-center">
-            <span class="text-xl font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${date.getDate()}</span>
+        card.setAttribute('onclick', `openDayPreview(${idx})`);
+card.innerHTML = `
+    <div class="cursor-pointer p-4 ${today ? 'bg-gradient-to-r from-[#C73E1D] to-[#E85D2C]' : 'bg-[#FAF6EF]'} border-b border-[#ECE5D8]">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs ${today ? 'text-white/80' : 'text-[#8A8A8A]'}">${formatDateShort(date)}</p>
+                <p class="text-base font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${dayName}${today ? ' · 今天' : ''}</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl ${today ? 'bg-white/20' : 'bg-white'} flex items-center justify-center">
+                <span class="text-xl font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${date.getDate()}</span>
+            </div>
         </div>
     </div>
-</div>
-            <div class="p-2 space-y-1">${slotsHtml}</div>`;
+    <div class="p-2 space-y-1">${slotsHtml}</div>`;
         grid.appendChild(card);
     });
     // ========== 新增：渲染顶部日期快速跳转导航按钮 ==========
@@ -1293,60 +1295,60 @@ function closeSelectDish() {
 }
 // 打开单日菜品预览弹窗
 function openDayPreview(dayIndex) {
-    console.log('点击日期下标', dayIndex); // 调试打印，点击会在控制台输出
-    const dates = getWeekDates(state.currentWeekOffset);
-    const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    const targetDate = dates[dayIndex];
-    const targetDayName = dayNames[dayIndex];
-    const weekKey = getCurrentWeekKey();
-    const weekMenu = state.weeklyMenus[weekKey] || {};
-    const dayMenu = weekMenu[targetDayName] || {};
-
-    // 设置弹窗标题
-    document.getElementById('dayPreviewTitle').textContent = `${targetDayName} ${formatDate(targetDate)} 完整菜单`;
-    const contentWrap = document.getElementById('dayPreviewContent');
-    const slots = ['素菜', '小荤', '大荤', '汤品'];
-
-    let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
-    slots.forEach(type => {
-        const dishId = dayMenu[type];
-        const dish = dishId ? getDishById(dishId) : null;
-        let tagClass, icon;
-        if(type === '素菜'){ tagClass = 'tag-veg'; icon = 'fa-leaf'; }
-        else if(type === '小荤'){ tagClass = 'tag-meat'; icon = 'fa-bacon'; }
-        else if(type === '大荤'){ tagClass = 'tag-big-meat'; icon = 'fa-drumstick-bite'; }
-        else if(type === '汤品'){ tagClass = 'tag-soup'; icon = 'fa-mug-hot'; }
-
-        if(dish){
-            html += `
-            <div class="border border-[#ECE5D8] rounded-2xl p-4">
-                <span class="inline-block mb-3 text-base px-3 py-1 rounded-full ${tagClass}">
-                    <i class="fa-solid ${icon} mr-1"></i>${type}
-                </span>
-                <div class="w-full h-48 rounded-xl overflow-hidden dish-image mb-3">
-                    ${dish.image 
-                        ? `<img src="${dish.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">`
-                        : `<div class="w-full h-full flex items-center justify-center bg-[#FAF6EF]">
-                            <i class="fa-solid ${icon} text-4xl text-[#8A8A8A]"></i>
-                           </div>`
-                    }
-                </div>
-                <h4 class="text-xl font-bold text-[#1A1A1A] mb-2">${dish.name}</h4>
-                <p class="text-sm text-[#8A8A8A]">食材：${dish.ingredients || '暂无'}</p>
-            </div>`;
-        }else{
-            html += `
-            <div class="border border-dashed border-[#ECE5D8] rounded-2xl p-6 text-center text-[#8A8A8A]">
-                <i class="fa-solid ${icon} text-3xl mb-2"></i>
-                <p>暂无${type}</p>
-            </div>`;
-        }
-    });
-    html += `</div>`;
-    contentWrap.innerHTML = html;
-    document.getElementById('dayPreviewModal').classList.remove('hidden');
+    try {
+        const dates = getWeekDates(state.currentWeekOffset);
+        const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+        const targetDate = dates[dayIndex];
+        const targetDayName = dayNames[dayIndex];
+        const weekKey = getCurrentWeekKey();
+        const weekMenu = state.weeklyMenus[weekKey] || {};
+        const dayMenu = weekMenu[targetDayName] || {};
+        // 设置弹窗标题
+        document.getElementById('dayPreviewTitle').textContent = `${targetDayName} ${formatDate(targetDate)} 完整菜单`;
+        const contentWrap = document.getElementById('dayPreviewContent');
+        const slots = ['素菜', '小荤', '大荤', '汤品'];
+        let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+        slots.forEach(type => {
+            const dishId = dayMenu[type];
+            const dish = dishId ? getDishById(dishId) : null;
+            let tagClass, icon;
+            if(type === '素菜'){ tagClass = 'tag-veg'; icon = 'fa-leaf'; }
+            else if(type === '小荤'){ tagClass = 'tag-meat'; icon = 'fa-bacon'; }
+            else if(type === '大荤'){ tagClass = 'tag-big-meat'; icon = 'fa-drumstick-bite'; }
+            else if(type === '汤品'){ tagClass = 'tag-soup'; icon = 'fa-mug-hot'; }
+            if(dish){
+                html += `
+                <div class="border border-[#ECE5D8] rounded-2xl p-4">
+                    <span class="inline-block mb-3 text-base px-3 py-1 rounded-full ${tagClass}">
+                        <i class="fa-solid ${icon} mr-1"></i>${type}
+                    </span>
+                    <div class="w-full h-48 rounded-xl overflow-hidden dish-image mb-3">
+                        ${dish.image 
+                            ? `<img src="${dish.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">`
+                            : `<div class="w-full h-full flex items-center justify-center bg-[#FAF6EF]">
+                                <i class="fa-solid ${icon} text-4xl text-[#8A8A8A]"></i>
+                               </div>`
+                        }
+                    </div>
+                    <h4 class="text-xl font-bold text-[#1A1A1A] mb-2">${dish.name}</h4>
+                    <p class="text-sm text-[#8A8A8A]">食材：${dish.ingredients || '暂无'}</p>
+                </div>`;
+            }else{
+                html += `
+                <div class="border border-dashed border-[#ECE5D8] rounded-2xl p-6 text-center text-[#8A8A8A]">
+                    <i class="fa-solid ${icon} text-3xl mb-2"></i>
+                    <p>暂无${type}</p>
+                </div>`;
+            }
+        });
+        html += `</div>`;
+        contentWrap.innerHTML = html;
+        document.getElementById('dayPreviewModal').classList.remove('hidden');
+    } catch(err) {
+        console.error('预览弹窗渲染失败：', err);
+        showToast('菜单预览加载失败', 'error');
+    }
 }
-
 // 关闭单日预览弹窗
 function closeDayPreview() {
     document.getElementById('dayPreviewModal').classList.add('hidden');
@@ -1410,6 +1412,7 @@ async function autoArrange() {
     const vegDishes = state.dishes.filter(d => d.category === '素菜');
     const meatDishes = state.dishes.filter(d => d.category === '小荤');
     const bigMeatDishes = state.dishes.filter(d => d.category === '大荤');
+    const soupDishes = state.dishes.filter(d => d.category === '汤品');
     if (vegDishes.length < 7 || meatDishes.length < 7 || bigMeatDishes.length < 7) {
         showToast('菜品库不足，每类至少需要7道菜', 'error');
         return;
@@ -1418,9 +1421,10 @@ async function autoArrange() {
     const veg = shuffle(vegDishes).slice(0, 7);
     const meat = shuffle(meatDishes).slice(0, 7);
     const bigMeat = shuffle(bigMeatDishes).slice(0, 7);
+    const soup = shuffle(soupDishes).slice(0, 7);
     const newWeekMenu = {};
     dayNames.forEach((day, i) => {
-        newWeekMenu[day] = { '素菜': veg[i].id, '小荤': meat[i].id, '大荤': bigMeat[i].id };
+        newWeekMenu[day] = { '素菜': veg[i].id, '小荤': meat[i].id, '大荤': bigMeat[i].id,'汤品': soup[i].id };
     });
     state.weeklyMenus[weekKey] = newWeekMenu;
     await markCurrentWeekUnpublished();
@@ -1468,7 +1472,6 @@ function filterCategory(cat) {
     state.menuFilter = cat;
     const searchDom = document.getElementById("searchInput");
     searchDom.value = "";
-    searchDom.autocomplete = "off";
     document.querySelectorAll('[data-cat]').forEach(btn => btn.classList.toggle('active', btn.dataset.cat === cat));
     renderMenu();
 }
@@ -1598,7 +1601,6 @@ async function saveDish() {
         showToast('菜品已添加', 'success');
     }
     await saveData();
-    await loadData(); // 【修复3】保存后重新拉取云端数据
     renderMenu();
     closeDishForm(); // 【修复2】保存后关闭弹窗
 }
@@ -1619,11 +1621,10 @@ function deleteDish(dishId) {
             state.dishes = state.dishes.filter(d => d.id !== dishId);
             Object.entries(state.weeklyMenus).forEach(([weekKey, weekMenu]) => {
                 Object.entries(weekMenu).forEach(([day, dayMenu]) => {
-                    Object.entries(dayMenu).forEach(([type, id]) => { if (id === dishId) delete state.weeklyMenus[weekKey][type]; });
+                    Object.entries(dayMenu).forEach(([type, id]) => { if (id === dishId) delete state.weeklyMenus[weekKey][day][type];});
                 });
             });
             await saveData();
-            await loadData(); // 【修复3】删除后同步云端
             renderMenu();
             renderWeek();
             showToast('菜品已删除', 'success');
