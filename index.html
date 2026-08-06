@@ -440,6 +440,19 @@
     #dayNavWrap {
         justify-content: center;
     }
+    #dayNavWrap .day-nav-btn {
+       flex: 0 0 auto !important; /* 禁止按钮自动收缩，宽度固定不塌陷 */
+   }
+   #dayScrollNav {
+       width: 100%;
+   }
+   #dayScrollNav {
+       overflow-x: auto !important;
+       padding-inline: 4px;
+   }
+   .day-nav-btn {
+       flex-shrink: 0 !important;
+   }
 }
     </style>
 </head>
@@ -565,9 +578,9 @@
     </div>
 </div>
              <!-- 移动端周日期快速跳转导航 -->
-             <div id="dayScrollNav" class="mb-5 overflow-x-auto flex gap-2 py-1 scrollbar-hide">
-                  <div id="dayNavWrap" class="flex gap-2 whitespace-nowrap min-w-max">
-                        <!-- JS动态生成周一~周日按钮 -->
+             <div id="dayScrollNav" class="mb-5 w-full overflow-x-auto flex gap-2 py-1 scrollbar-hide" style="-webkit-overflow-scrolling:touch;">
+                   <div id="dayNavWrap" class="flex gap-2 whitespace-nowrap min-w-max">
+                              <!-- JS动态生成周一~周日按钮 -->
                   </div>
             </div>
             <!-- 七天卡片 -->
