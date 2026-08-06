@@ -430,6 +430,13 @@
     #searchInput {
         width: 100% !important;
     }
+   /* 这里原有一堆手机样式代码，在末尾追加下面这段 */
+    .day-nav-btn div {
+        text-align: center;
+    }
+    #dayNavWrap {
+        justify-content: center;
+    }
 }
     </style>
 </head>
@@ -516,8 +523,8 @@
                 </div>
             </div>
 <!-- 统计信息：横向固定滚动，不自动换行压缩 -->
-<div class="flex gap-2 sm:gap-3 mb-5 overflow-x-auto pb-2" style="scrollbar-width: thin;">
-    <div class="stat-card flex-none min-w-[180px]">
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3 mb-5">
+    <div class="stat-card">
         <div>
             <p class="text-xs text-[#8A8A8A] mb-1">总菜品</p>
             <p class="text-2xl font-bold text-[#1A1A1A]"><span id="statTotal">0</span><span class="text-sm font-normal text-[#8A8A8A]">/21</span></p>
@@ -526,7 +533,7 @@
             <i class="fa-solid fa-utensils text-[#1A1A1A]"></i>
         </div>
     </div>
-    <div class="stat-card flex-none min-w-[180px]">
+    <div class="stat-card">
         <div>
             <p class="text-xs text-[#8A8A8A] mb-1">素菜</p>
             <p class="text-2xl font-bold text-[#6A994E]"><span id="statVeg">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
@@ -535,7 +542,7 @@
             <i class="fa-solid fa-leaf text-[#6A994E]"></i>
         </div>
     </div>
-    <div class="stat-card flex-none min-w-[180px]">
+    <div class="stat-card">
         <div>
             <p class="text-xs text-[#8A8A8A] mb-1">小荤</p>
             <p class="text-2xl font-bold text-[#F4A261]"><span id="statSmallMeat">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
@@ -544,7 +551,7 @@
             <i class="fa-solid fa-bacon text-[#F4A261]"></i>
         </div>
     </div>
-    <div class="stat-card flex-none min-w-[180px]">
+    <div class="stat-card">
         <div>
             <p class="text-xs text-[#8A8A8A] mb-1">大荤</p>
             <p class="text-2xl font-bold text-[#BC4749]"><span id="statBigMeat">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
@@ -1247,8 +1254,7 @@ function renderWeek() {
                 else return `<div class="rounded-xl p-3 flex items-center justify-center gap-2 h-[72px] border border-dashed border-[#ECE5D8]"><span class="text-xs text-[#C8C0B0]">暂无${type}</span></div>`;
             }
         }).join('');
-        card.setAttribute('onclick', `openDayPreview(${idx})`);
-card.innerHTML = `
+       card.innerHTML = `
     <div class="cursor-pointer p-4 ${today ? 'bg-gradient-to-r from-[#C73E1D] to-[#E85D2C]' : 'bg-[#FAF6EF]'} border-b border-[#ECE5D8]">
         <div class="flex items-center justify-between">
             <div>
@@ -1275,6 +1281,13 @@ card.innerHTML = `
             <div class="text-xs opacity-75">${formatDateShort(date)}</div>
             <div class="text-sm font-bold mt-0.5">${dayName}${today ? '<span class="text-[10px] block">今天</span>' : ''}</div>
         `;
+        btn.onclick = () => {
+    // 清除所有按钮active
+    document.querySelectorAll('.day-nav-btn').forEach(b => b.classList.remove('active'));
+    // 当前点击按钮高亮
+    btn.classList.add('active');
+    openDayPreview(idx);
+};
         navWrap.appendChild(btn);
     });
     document.getElementById('statTotal').textContent = totalDishes;
