@@ -516,7 +516,7 @@
             </div>
 
             <!-- 统计信息 -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5">
     <div class="stat-card">
         <div>
             <p class="text-xs text-[#8A8A8A] mb-1">总菜品</p>
@@ -785,17 +785,17 @@
             </div>
         </div>
     </div>
-<!-- 当日菜品放大预览弹窗 -->
-<div id="dayDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+<!-- ============== 单日菜品放大预览弹窗 ============== -->
+<div id="dayPreviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl modal-content animate-scale-in">
         <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between">
-            <h3 class="text-xl font-bold" id="dayDetailTitle">周一菜单</h3>
-            <button onclick="closeDayDetailModal()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
+            <h3 class="text-xl font-bold" id="dayPreviewTitle">周一 菜单预览</h3>
+            <button onclick="closeDayPreview()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-        <div class="p-6 space-y-6" id="dayDetailBody">
-            <!-- JS动态填充放大菜品 -->
+        <div class="p-6" id="dayPreviewContent">
+            <!-- JS动态渲染当日放大菜品 -->
         </div>
     </div>
 </div>
@@ -870,16 +870,15 @@ function checkAccessKey() {
         throw new Error("非法访问");
     }
 }
+
+// 【修复4：登录持久化 读取本地管理员状态】
 function restoreAdminLogin() {
     const localIsAdmin = localStorage.getItem("isAdmin");
-    // 去除首尾空格，防止缓存存成 " true " 导致判断失效
-    if (localIsAdmin && localIsAdmin.trim() === "true") {
+    if (localIsAdmin === "true") {
         state.isAdmin = true;
-    } else {
-        // 缓存异常则重置管理员状态
-        state.isAdmin = false;
     }
 }
+
 // 后端接口封装
 async function apiGetData() {
     const res = await fetch(`${API_BASE}`, {
@@ -1077,17 +1076,22 @@ function openLoginModal() {
 function closeLoginModal() {
     document.getElementById('loginModal').classList.add('hidden');
 }
-if (username === 'kebao' && password === 'kebao@4083789') {
-    state.isAdmin = true;
-    localStorage.setItem("isAdmin", "true");
-    closeLoginModal();
-    // 第一次立即刷新
-    updateUI();
-    // 延迟200ms二次刷新，解决DOM渲染延迟导致按钮不显示
-    setTimeout(()=>{
+function doLogin() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    if (!username || !password) {
+        showToast('请输入账号和密码', 'error');
+        return;
+    }
+    if (username === 'kebao' && password === 'kebao@4083789') {
+        state.isAdmin = true;
+        localStorage.setItem("isAdmin", "true"); // 【修复4】持久化登录
+        closeLoginModal();
         updateUI();
-    }, 200);
-    showToast('管理员登录成功', 'success');
+        showToast('管理员登录成功', 'success');
+    } else {
+        showToast('账号或密码错误', 'error');
+    }
 }
 function logout() {
     const weekKey = getCurrentWeekKey();
@@ -1120,30 +1124,20 @@ function updateUI() {
     const adminElements = document.querySelectorAll('.admin-only');
     const loginBtn = document.getElementById('loginBtn');
     const userMenu = document.getElementById('userMenu');
-    const menuNavBtn = document.getElementById("nav-menu");
-
-    // 容错：防止DOM未加载完成获取不到按钮报错
-    if (!menuNavBtn) return;
-
+    const menuNavBtn = document.getElementById('nav-menu');
     if (state.isAdmin) {
-        // 管理员：所有管理员功能解除隐藏
         adminElements.forEach(el => el.classList.remove('visitor-hidden'));
         loginBtn.classList.add('hidden');
         userMenu.classList.remove('hidden');
         userMenu.classList.add('flex');
-        // 强制移除隐藏类，双重保障
-        menuNavBtn.classList.remove('hidden');
-        menuNavBtn.style.display = '';
+        menuNavBtn.classList.remove('hidden'); // 管理员显示总菜单按钮
     } else {
-        // 访客：隐藏管理员功能、隐藏总菜单
         adminElements.forEach(el => el.classList.add('visitor-hidden'));
         loginBtn.classList.remove('hidden');
         userMenu.classList.add('hidden');
         userMenu.classList.remove('flex');
-        menuNavBtn.classList.add('hidden');
-        menuNavBtn.style.display = 'none';
+        menuNavBtn.classList.add('hidden'); // 访客隐藏总菜单按钮
     }
-
     if (state.currentPage === 'menu') {
        const searchDom = document.getElementById("searchInput");
        searchDom.value = "";
@@ -1266,17 +1260,17 @@ function renderWeek() {
             }
         }).join('');
         card.innerHTML = `
-            <div onclick="openDayDetail(${idx})" class="p-4 ${today ? 'bg-gradient-to-r from-[#C73E1D] to-[#E85D2C]' : 'bg-[#FAF6EF]'} border-b border-[#ECE5D8]">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs ${today ? 'text-white/80' : 'text-[#8A8A8A]'}">${formatDateShort(date)}</p>
-                        <p class="text-base font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${dayName}${today ? ' · 今天' : ''}</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl ${today ? 'bg-white/20' : 'bg-white'} flex items-center justify-center">
-                        <span class="text-xl font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${date.getDate()}</span>
-                    </div>
-                </div>
-            </div>
+            <div onclick="openDayPreview(${idx})" class="cursor-pointer p-4 ${today ? 'bg-gradient-to-r from-[#C73E1D] to-[#E85D2C]' : 'bg-[#FAF6EF]'} border-b border-[#ECE5D8]">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-xs ${today ? 'text-white/80' : 'text-[#8A8A8A]'}">${formatDateShort(date)}</p>
+            <p class="text-base font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${dayName}${today ? ' · 今天' : ''}</p>
+        </div>
+        <div class="w-10 h-10 rounded-xl ${today ? 'bg-white/20' : 'bg-white'} flex items-center justify-center">
+            <span class="text-xl font-bold ${today ? 'text-white' : 'text-[#1A1A1A]'}">${date.getDate()}</span>
+        </div>
+    </div>
+</div>
             <div class="p-2 space-y-1">${slotsHtml}</div>`;
         grid.appendChild(card);
     });
@@ -1296,9 +1290,9 @@ function renderWeek() {
         navWrap.appendChild(btn);
     });
     document.getElementById('statTotal').textContent = totalDishes;
-    document.getElementById('statVeg').textContent = vegCount;
-    document.getElementById('statSmallMeat').textContent = smallMeatCount;
-    document.getElementById('statBigMeat').textContent = bigMeatCount;
+   document.getElementById('statVeg').textContent = vegCount;
+   document.getElementById('statSmallMeat').textContent = smallMeatCount;
+   document.getElementById('statBigMeat').textContent = bigMeatCount;
 }
 function openSelectDish(weekKey, day, type) {
     if (!state.isAdmin) return;
@@ -1311,28 +1305,23 @@ function closeSelectDish() {
     document.getElementById('selectDishModal').classList.add('hidden');
     state.selectContext = null;
 }
-// ====================== 单日菜单详情弹窗 全套函数 ======================
-// 关闭当日详情弹窗
-function closeDayDetailModal() {
-    document.getElementById('dayDetailModal').classList.add('hidden');
-}
-
-// 打开单日放大菜单弹窗，idx：周一0 ~ 周日6
-function openDayDetail(idx) {
+// 打开单日菜品预览弹窗
+function openDayPreview(dayIndex) {
     const dates = getWeekDates(state.currentWeekOffset);
     const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const targetDate = dates[dayIndex];
+    const targetDayName = dayNames[dayIndex];
     const weekKey = getCurrentWeekKey();
     const weekMenu = state.weeklyMenus[weekKey] || {};
-    const dayName = dayNames[idx];
-    const dayMenu = weekMenu[dayName] || {};
-    const currentDate = dates[idx];
-    const titleText = `${dayName} ${formatDate(currentDate)} 完整菜单`;
-    document.getElementById('dayDetailTitle').textContent = titleText;
+    const dayMenu = weekMenu[targetDayName] || {};
 
-    // 菜品展示固定顺序
-    const slotOrder = ['素菜','小荤','大荤','汤品'];
-    let html = '';
-    slotOrder.forEach(type=>{
+    // 设置弹窗标题
+    document.getElementById('dayPreviewTitle').textContent = `${targetDayName} ${formatDate(targetDate)} 完整菜单`;
+    const contentWrap = document.getElementById('dayPreviewContent');
+    const slots = ['素菜', '小荤', '大荤', '汤品'];
+
+    let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+    slots.forEach(type => {
         const dishId = dayMenu[type];
         const dish = dishId ? getDishById(dishId) : null;
         let tagClass, icon;
@@ -1342,35 +1331,38 @@ function openDayDetail(idx) {
         else if(type === '汤品'){ tagClass = 'tag-soup'; icon = 'fa-mug-hot'; }
 
         if(dish){
-            // 大图+放大文字展示
             html += `
-            <div class="border border-[#ECE5D8] rounded-2xl p-5">
-                <span class="text-sm font-medium px-3 py-1 rounded-full ${tagClass} inline-block mb-4">
+            <div class="border border-[#ECE5D8] rounded-2xl p-4">
+                <span class="tag-pill ${tagClass} inline-block mb-3 text-base px-3 py-1">
                     <i class="fa-solid ${icon} mr-1"></i>${type}
                 </span>
-                <div class="flex flex-col sm:flex-row gap-6 items-center">
-                    <div class="w-48 h-48 rounded-xl overflow-hidden flex-shrink-0 dish-image">
-                        ${dish.image ? `<img src="${dish.image}" alt="${dish.name}" loading="lazy" onerror="this.style.display='none'" class="w-full h-full object-cover">` 
-                        : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-5xl text-[#8A8A8A]"></i></div>`}
-                    </div>
-                    <div class="flex-1 text-center sm:text-left">
-                        <h4 class="text-2xl font-bold text-[#1A1A1A] mb-3">${dish.name}</h4>
-                        <p class="text-base text-[#8A8A8A]">食材：${dish.ingredients || '暂无食材信息'}</p>
-                    </div>
+                <div class="w-full h-48 rounded-xl overflow-hidden dish-image mb-3">
+                    ${dish.image 
+                        ? `<img src="${dish.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">`
+                        : `<div class="w-full h-full flex items-center justify-center bg-[#FAF6EF]">
+                            <i class="fa-solid ${icon} text-4xl text-[#8A8A8A]"></i>
+                           </div>`
+                    }
                 </div>
-            </div>
-            `;
+                <h4 class="text-xl font-bold text-[#1A1A1A] mb-2">${dish.name}</h4>
+                <p class="text-sm text-[#8A8A8A]">食材：${dish.ingredients || '暂无'}</p>
+            </div>`;
         }else{
             html += `
             <div class="border border-dashed border-[#ECE5D8] rounded-2xl p-6 text-center text-[#8A8A8A]">
-                <i class="fa-solid ${icon} text-2xl mb-2"></i>
+                <i class="fa-solid ${icon} text-3xl mb-2"></i>
                 <p>暂无${type}</p>
-            </div>
-            `;
+            </div>`;
         }
     });
-    document.getElementById('dayDetailBody').innerHTML = html;
-    document.getElementById('dayDetailModal').classList.remove('hidden');
+    html += `</div>`;
+    contentWrap.innerHTML = html;
+    document.getElementById('dayPreviewModal').classList.remove('hidden');
+}
+
+// 关闭单日预览弹窗
+function closeDayPreview() {
+    document.getElementById('dayPreviewModal').classList.add('hidden');
 }
 function renderSelectDishList() {
     const { weekKey, day, type } = state.selectContext;
@@ -1686,7 +1678,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
             if (overlay.id === 'selectDishModal') closeSelectDish();
             if (overlay.id === 'confirmModal') closeConfirm();
             if (overlay.id === 'loginModal') closeLoginModal();
-            if (overlay.id === 'dayDetailModal') closeDayDetailModal();
+            if (overlay.id === 'dayPreviewModal') closeDayPreview();
         }
     });
 });
@@ -1696,21 +1688,17 @@ document.addEventListener('keydown', e => {
         closeSelectDish();
         closeConfirm();
         closeLoginModal();
-        closeDayDetailModal();
+        closeDayPreview();
     }
 });
 (async function init() {
     checkAccessKey();
-    restoreAdminLogin(); // 读取本地持久化登录状态
+    restoreAdminLogin(); // 修复4：读取本地登录状态
     await loadData();
     updateUI();
     renderWeek();
     renderMenu();
     startRealtimePoll();
-    // 兜底：页面加载完成后再执行一次UI更新
-    setTimeout(()=>{
-        updateUI();
-    }, 300);
 })();
 </script>
 </body>
