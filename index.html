@@ -810,14 +810,16 @@
     </div>
 <!-- ============== 单日菜品放大预览弹窗 ============== -->
 <div id="dayPreviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl modal-content animate-scale-in">
-        <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl modal-content animate-scale-in flex flex-col max-h-[85vh]">
+        <!-- 固定头部，不会滚动 -->
+        <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between flex-shrink-0">
             <h3 class="text-xl font-bold" id="dayPreviewTitle">周一 菜单预览</h3>
             <button onclick="closeDayPreview()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-        <div class="p-6" id="dayPreviewContent">
+        <!-- 仅内容区域滚动 -->
+        <div class="p-6 overflow-y-auto flex-1" id="dayPreviewContent">
             <!-- JS动态渲染当日放大菜品 -->
         </div>
     </div>
@@ -1203,22 +1205,22 @@ function renderWeek() {
     // ========== 新增代码结束 ==========
     updatePublishBadge();
     const grid = document.getElementById('weekGrid');
-    if (!state.isAdmin && !isPublished) {
-        grid.innerHTML = `
-            <div class="col-span-full empty-state">
-                <div class="icon-wrap"><i class="fa-solid fa-calendar-xmark"></i></div>
-                <h3 class="text-xl font-bold text-[#1A1A1A] mb-2">暂无已发布的菜单</h3>
-                <p class="text-sm text-[#8A8A8A] mb-4">当前周菜单尚未发布，请返回查看已发布的菜单</p>
-                <button onclick="goToThisWeek()" class="btn-primary px-6 py-2.5 rounded-2xl font-medium inline-flex items-center gap-2">
-                    <i class="fa-solid fa-arrow-left"></i>返回当前周
-                </button>
-            </div>`;
-        document.getElementById('statTotal').textContent = '0';
-        document.getElementById('statVeg').textContent = '0';
-        document.getElementById('statSmallMeat').textContent = '0';
-        document.getElementById('statBigMeat').textContent = '0';
-        return;
-    }
+    if (!isPublished) {
+    grid.innerHTML = `
+        <div class="col-span-full empty-state">
+            <div class="icon-wrap"><i class="fa-solid fa-calendar-xmark"></i></div>
+            <h3 class="text-xl font-bold text-[#1A1A1A] mb-2">暂无已发布的菜单</h3>
+            <p class="text-sm text-[#8A8A8A] mb-4">当前周菜单尚未发布，请切换其他已发布周查看</p>
+            <button onclick="goToThisWeek()" class="btn-primary px-6 py-2.5 rounded-2xl font-medium inline-flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i>返回本周
+            </button>
+        </div>`;
+    document.getElementById('statTotal').textContent = '0';
+    document.getElementById('statVeg').textContent = '0';
+    document.getElementById('statSmallMeat').textContent = '0';
+    document.getElementById('statBigMeat').textContent = '0';
+    return;
+}
     const weekMenu = state.weeklyMenus[weekKey] || {};
     const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
     let totalDishes = 0, vegCount = 0, smallMeatCount = 0, bigMeatCount = 0;
@@ -1351,7 +1353,7 @@ function openDayPreview(dayIndex) {
                     <span class="inline-block mb-3 text-base px-3 py-1 rounded-full ${tagClass}">
                         <i class="fa-solid ${icon} mr-1"></i>${type}
                     </span>
-                    <div class="w-full h-48 rounded-xl overflow-hidden dish-image mb-3">
+                    <div class="w-full h-40 rounded-xl overflow-hidden dish-image mb-3">
                         ${dish.image 
                             ? `<img src="${dish.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">`
                             : `<div class="w-full h-full flex items-center justify-center bg-[#FAF6EF]">
