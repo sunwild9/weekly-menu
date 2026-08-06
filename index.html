@@ -799,6 +799,7 @@
         </div>
     </div>
 </div>
+
     <!-- Toast 通知 -->
     <div id="toast" class="toast"></div>
 
@@ -1292,6 +1293,7 @@ function closeSelectDish() {
 }
 // 打开单日菜品预览弹窗
 function openDayPreview(dayIndex) {
+    console.log('点击日期下标', dayIndex); // 调试打印，点击会在控制台输出
     const dates = getWeekDates(state.currentWeekOffset);
     const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
     const targetDate = dates[dayIndex];
@@ -1318,7 +1320,7 @@ function openDayPreview(dayIndex) {
         if(dish){
             html += `
             <div class="border border-[#ECE5D8] rounded-2xl p-4">
-                <span class="tag-pill ${tagClass} inline-block mb-3 text-base px-3 py-1">
+                <span class="inline-block mb-3 text-base px-3 py-1 rounded-full ${tagClass}">
                     <i class="fa-solid ${icon} mr-1"></i>${type}
                 </span>
                 <div class="w-full h-48 rounded-xl overflow-hidden dish-image mb-3">
