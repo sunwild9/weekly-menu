@@ -431,7 +431,10 @@
         width: 100% !important;
     }
    /* 这里原有一堆手机样式代码，在末尾追加下面这段 */
-    .day-nav-btn div {
+    .day-nav-btn {
+        text-align: center !important;
+    }
+    .day-nav-btn > div {
         text-align: center;
     }
     #dayNavWrap {
@@ -510,20 +513,20 @@
                     <h2 class="text-3xl sm:text-4xl font-bold text-[#1A1A1A]" id="weekTitle"></h2>
                 </div>
 
-                <div class="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-[#ECE5D8]">
-                    <button onclick="changeWeek(-1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </button>
-                    <button onclick="goToThisWeek()" class="px-3 h-9 rounded-xl hover:bg-[#FAF6EF] text-sm font-medium text-[#1A1A1A] transition flex-none">
-                        本周
-                    </button>
-                    <button onclick="changeWeek(1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </button>
-                </div>
+                <div class="flex items-center justify-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-[#ECE5D8]">
+    <button onclick="changeWeek(-1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <button onclick="goToThisWeek()" class="px-3 h-9 rounded-xl hover:bg-[#FAF6EF] text-sm font-medium text-[#1A1A1A] transition flex-none flex items-center justify-center">
+        本周
+    </button>
+    <button onclick="changeWeek(1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
+        <i class="fa-solid fa-chevron-right"></i>
+    </button>
+</div>
             </div>
 <!-- 统计信息：横向固定滚动，不自动换行压缩 -->
-<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3 mb-5">
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3 mb-5 admin-only visitor-hidden">
     <div class="stat-card">
         <div>
             <p class="text-xs text-[#8A8A8A] mb-1">总菜品</p>
@@ -1194,7 +1197,7 @@ function renderWeek() {
                 <h3 class="text-xl font-bold text-[#1A1A1A] mb-2">暂无已发布的菜单</h3>
                 <p class="text-sm text-[#8A8A8A] mb-4">当前周菜单尚未发布，请返回查看已发布的菜单</p>
                 <button onclick="goToThisWeek()" class="btn-primary px-6 py-2.5 rounded-2xl font-medium inline-flex items-center gap-2">
-                    <i class="fa-solid fa-arrow-left"></i>返回本周
+                    <i class="fa-solid fa-arrow-left"></i>返回当前周
                 </button>
             </div>`;
         document.getElementById('statTotal').textContent = '0';
