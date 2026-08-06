@@ -371,20 +371,6 @@
    }
 /* 手机全局适配补充 */
     @media (max-width: 640px) {
-    /* 原有手机样式不动，新增下面两行 */
-    .grid.grid-cols-1.sm\:grid-cols-3 {
-        display: flex;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        gap: 8px;
-        padding-bottom: 4px;
-    }
-    .grid.grid-cols-1.sm\:grid-cols-3 > div.stat-card {
-        min-width: 130px;
-        flex: 1;
-    }
-    /* 原有其他手机样式保留 */
-}
     h2.text-3xl, h2.text-2xl {
         font-size: 1.4rem !important;
     }
@@ -443,20 +429,16 @@
         width: 100% !important;
     }
 }
-html, body {
-    min-width: 320px;
-    width: 100%;
-}
     </style>
 </head>
 <body>
     <!-- 装饰背景 -->
-    <div class="decor-blob" style="width: 280px; height: 280px; background: var(--accent); top: -60px; right: -60px;"></div>
-    <div class="decor-blob" style="width: 320px; height: 320px; background: var(--primary); bottom: -80px; left: -80px; opacity: 0.12;"></div>
+    <div class="decor-blob" style="width: 400px; height: 400px; background: var(--accent); top: -100px; right: -100px;"></div>
+    <div class="decor-blob" style="width: 500px; height: 500px; background: var(--primary); bottom: -200px; left: -200px; opacity: 0.15;"></div>
 
     <!-- 顶部导航 -->
     <header class="sticky top-0 z-40 glass border-b border-white/40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#C73E1D] to-[#F4A261] flex items-center justify-center shadow-lg">
                     <i class="fa-solid fa-utensils text-white text-lg"></i>
@@ -468,12 +450,12 @@ html, body {
             </div>
 
             <div class="flex items-center gap-2">
-                <nav class="flex items-center flex-wrap gap-1 sm:gap-3 lg:gap-4 bg-white/60 rounded-full p-1 sm:p-1.5 border border-white/60">
-                    <button onclick="switchPage('weekly')" id="nav-weekly" class="nav-btn active px-2 sm:px-4 py-2 rounded-full text-sm font-medium">
+                <nav class="flex items-center gap-1 sm:gap-2 bg-white/60 rounded-full p-1 border border-white/60">
+                    <button onclick="switchPage('weekly')" id="nav-weekly" class="nav-btn active px-2 sm:px-6 py-2 rounded-full text-sm font-medium">
                         <i class="fa-regular fa-calendar mr-1.5"></i>每周菜单
                     </button>
-                    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn visitor-hidden px-2 sm:px-4 py-2 rounded-full text-sm font-medium">
-                            <i class="fa-solid fa-book-open mr-1.5"></i>总菜单
+                    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn px-2 sm:px-4 py-2 rounded-full text-sm font-medium">
+                                <i class="fa-solid fa-book-open mr-1.5"></i>总菜单
                     </button>
                 </nav>
 
@@ -497,7 +479,7 @@ html, body {
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10 min-w-[320px]">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
 
         <!-- ============== 每周菜单页面 ============== -->
         <section id="page-weekly" class="page-content active">
@@ -534,35 +516,44 @@ html, body {
             </div>
 
             <!-- 统计信息 -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-5 w-full">
-                <div class="stat-card">
-                    <div>
-                        <p class="text-xs text-[#8A8A8A] mb-1">总菜品</p>
-                        <p class="text-2xl font-bold text-[#1A1A1A]"><span id="statTotal">0</span><span class="text-sm font-normal text-[#8A8A8A]">/21</span></p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-[#F4EDE0] flex items-center justify-center">
-                        <i class="fa-solid fa-utensils text-[#1A1A1A]"></i>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div>
-                        <p class="text-xs text-[#8A8A8A] mb-1">素菜</p>
-                        <p class="text-2xl font-bold text-[#6A994E]"><span id="statVeg">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-[#E8F3D6] flex items-center justify-center">
-                        <i class="fa-solid fa-leaf text-[#6A994E]"></i>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div>
-                        <p class="text-xs text-[#8A8A8A] mb-1">荤菜</p>
-                        <p class="text-2xl font-bold text-[#BC4749]"><span id="statMeat">0</span><span class="text-sm font-normal text-[#8A8A8A]">/14</span></p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-[#F7DEDD] flex items-center justify-center">
-                        <i class="fa-solid fa-drumstick-bite text-[#BC4749]"></i>
-                    </div>
-                </div>
-            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5">
+    <div class="stat-card">
+        <div>
+            <p class="text-xs text-[#8A8A8A] mb-1">总菜品</p>
+            <p class="text-2xl font-bold text-[#1A1A1A]"><span id="statTotal">0</span><span class="text-sm font-normal text-[#8A8A8A]">/21</span></p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-[#F4EDE0] flex items-center justify-center">
+            <i class="fa-solid fa-utensils text-[#1A1A1A]"></i>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div>
+            <p class="text-xs text-[#8A8A8A] mb-1">素菜</p>
+            <p class="text-2xl font-bold text-[#6A994E]"><span id="statVeg">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-[#E8F3D6] flex items-center justify-center">
+            <i class="fa-solid fa-leaf text-[#6A994E]"></i>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div>
+            <p class="text-xs text-[#8A8A8A] mb-1">小荤</p>
+            <p class="text-2xl font-bold text-[#F4A261]"><span id="statSmallMeat">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-[#FDE8D0] flex items-center justify-center">
+            <i class="fa-solid fa-bacon text-[#F4A261]"></i>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div>
+            <p class="text-xs text-[#8A8A8A] mb-1">大荤</p>
+            <p class="text-2xl font-bold text-[#BC4749]"><span id="statBigMeat">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-[#F7DEDD] flex items-center justify-center">
+            <i class="fa-solid fa-drumstick-bite text-[#BC4749]"></i>
+        </div>
+    </div>
+</div>
              <!-- 移动端周日期快速跳转导航 -->
              <div id="dayScrollNav" class="mb-5 overflow-x-auto flex gap-2 py-1 scrollbar-hide">
                   <div id="dayNavWrap" class="flex gap-2 whitespace-nowrap min-w-max">
@@ -570,7 +561,7 @@ html, body {
                   </div>
             </div>
             <!-- 七天卡片 -->
-            <div id="weekGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+            <div id="weekGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 <!-- 由JS动态生成 -->
             </div>
 
@@ -794,7 +785,20 @@ html, body {
             </div>
         </div>
     </div>
-
+<!-- 当日菜品放大预览弹窗 -->
+<div id="dayDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl modal-content animate-scale-in">
+        <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between">
+            <h3 class="text-xl font-bold" id="dayDetailTitle">周一菜单</h3>
+            <button onclick="closeDayDetailModal()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-6" id="dayDetailBody">
+            <!-- JS动态填充放大菜品 -->
+        </div>
+    </div>
+</div>
     <!-- Toast 通知 -->
     <div id="toast" class="toast"></div>
 
@@ -866,15 +870,16 @@ function checkAccessKey() {
         throw new Error("非法访问");
     }
 }
-
-// 【修复4：登录持久化 读取本地管理员状态】
 function restoreAdminLogin() {
     const localIsAdmin = localStorage.getItem("isAdmin");
-    if (localIsAdmin === "true") {
+    // 去除首尾空格，防止缓存存成 " true " 导致判断失效
+    if (localIsAdmin && localIsAdmin.trim() === "true") {
         state.isAdmin = true;
+    } else {
+        // 缓存异常则重置管理员状态
+        state.isAdmin = false;
     }
 }
-
 // 后端接口封装
 async function apiGetData() {
     const res = await fetch(`${API_BASE}`, {
@@ -1072,22 +1077,17 @@ function openLoginModal() {
 function closeLoginModal() {
     document.getElementById('loginModal').classList.add('hidden');
 }
-function doLogin() {
-    const username = document.getElementById('loginUsername').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-    if (!username || !password) {
-        showToast('请输入账号和密码', 'error');
-        return;
-    }
-    if (username === 'kebao' && password === 'kebao@4083789') {
-        state.isAdmin = true;
-        localStorage.setItem("isAdmin", "true"); // 【修复4】持久化登录
-        closeLoginModal();
+if (username === 'kebao' && password === 'kebao@4083789') {
+    state.isAdmin = true;
+    localStorage.setItem("isAdmin", "true");
+    closeLoginModal();
+    // 第一次立即刷新
+    updateUI();
+    // 延迟200ms二次刷新，解决DOM渲染延迟导致按钮不显示
+    setTimeout(()=>{
         updateUI();
-        showToast('管理员登录成功', 'success');
-    } else {
-        showToast('账号或密码错误', 'error');
-    }
+    }, 200);
+    showToast('管理员登录成功', 'success');
 }
 function logout() {
     const weekKey = getCurrentWeekKey();
@@ -1120,21 +1120,35 @@ function updateUI() {
     const adminElements = document.querySelectorAll('.admin-only');
     const loginBtn = document.getElementById('loginBtn');
     const userMenu = document.getElementById('userMenu');
+    const menuNavBtn = document.getElementById("nav-menu");
+
+    // 容错：防止DOM未加载完成获取不到按钮报错
+    if (!menuNavBtn) return;
+
     if (state.isAdmin) {
+        // 管理员：所有管理员功能解除隐藏
         adminElements.forEach(el => el.classList.remove('visitor-hidden'));
         loginBtn.classList.add('hidden');
         userMenu.classList.remove('hidden');
         userMenu.classList.add('flex');
+        // 强制移除隐藏类，双重保障
+        menuNavBtn.classList.remove('hidden');
+        menuNavBtn.style.display = '';
     } else {
+        // 访客：隐藏管理员功能、隐藏总菜单
         adminElements.forEach(el => el.classList.add('visitor-hidden'));
         loginBtn.classList.remove('hidden');
         userMenu.classList.add('hidden');
         userMenu.classList.remove('flex');
+        menuNavBtn.classList.add('hidden');
+        menuNavBtn.style.display = 'none';
     }
+
     if (state.currentPage === 'menu') {
-        // 【修复1】切换菜单页清空搜索框
-        document.getElementById("searchInput").value = "";
-        renderMenu();
+       const searchDom = document.getElementById("searchInput");
+       searchDom.value = "";
+       searchDom.autocomplete = "off";
+       renderMenu();
     } else renderWeek();
 }
 function switchPage(page) {
@@ -1202,7 +1216,7 @@ function renderWeek() {
     }
     const weekMenu = state.weeklyMenus[weekKey] || {};
     const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    let totalDishes = 0, vegCount = 0, meatCount = 0;
+    let totalDishes = 0, vegCount = 0, smallMeatCount = 0, bigMeatCount = 0;
     grid.innerHTML = '';
     dates.forEach((date, idx) => {
         const dayName = dayNames[idx];
@@ -1219,7 +1233,8 @@ function renderWeek() {
             if (dish) {
                 totalDishes++;
                 if (type === '素菜') vegCount++;
-                else meatCount++;
+                else if (type === '小荤') smallMeatCount++;
+                else if (type === '大荤') bigMeatCount++;
                 let tagClass, icon;
                 if(type === '素菜'){ tagClass = 'tag-veg'; icon = 'fa-leaf'; }
                 else if(type === '小荤'){ tagClass = 'tag-meat'; icon = 'fa-bacon'; }
@@ -1251,7 +1266,7 @@ function renderWeek() {
             }
         }).join('');
         card.innerHTML = `
-            <div class="p-4 ${today ? 'bg-gradient-to-r from-[#C73E1D] to-[#E85D2C]' : 'bg-[#FAF6EF]'} border-b border-[#ECE5D8]">
+            <div onclick="openDayDetail(${idx})" class="p-4 ${today ? 'bg-gradient-to-r from-[#C73E1D] to-[#E85D2C]' : 'bg-[#FAF6EF]'} border-b border-[#ECE5D8]">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs ${today ? 'text-white/80' : 'text-[#8A8A8A]'}">${formatDateShort(date)}</p>
@@ -1282,7 +1297,8 @@ function renderWeek() {
     });
     document.getElementById('statTotal').textContent = totalDishes;
     document.getElementById('statVeg').textContent = vegCount;
-    document.getElementById('statMeat').textContent = meatCount;
+    document.getElementById('statSmallMeat').textContent = smallMeatCount;
+    document.getElementById('statBigMeat').textContent = bigMeatCount;
 }
 function openSelectDish(weekKey, day, type) {
     if (!state.isAdmin) return;
@@ -1294,6 +1310,67 @@ function openSelectDish(weekKey, day, type) {
 function closeSelectDish() {
     document.getElementById('selectDishModal').classList.add('hidden');
     state.selectContext = null;
+}
+// ====================== 单日菜单详情弹窗 全套函数 ======================
+// 关闭当日详情弹窗
+function closeDayDetailModal() {
+    document.getElementById('dayDetailModal').classList.add('hidden');
+}
+
+// 打开单日放大菜单弹窗，idx：周一0 ~ 周日6
+function openDayDetail(idx) {
+    const dates = getWeekDates(state.currentWeekOffset);
+    const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const weekKey = getCurrentWeekKey();
+    const weekMenu = state.weeklyMenus[weekKey] || {};
+    const dayName = dayNames[idx];
+    const dayMenu = weekMenu[dayName] || {};
+    const currentDate = dates[idx];
+    const titleText = `${dayName} ${formatDate(currentDate)} 完整菜单`;
+    document.getElementById('dayDetailTitle').textContent = titleText;
+
+    // 菜品展示固定顺序
+    const slotOrder = ['素菜','小荤','大荤','汤品'];
+    let html = '';
+    slotOrder.forEach(type=>{
+        const dishId = dayMenu[type];
+        const dish = dishId ? getDishById(dishId) : null;
+        let tagClass, icon;
+        if(type === '素菜'){ tagClass = 'tag-veg'; icon = 'fa-leaf'; }
+        else if(type === '小荤'){ tagClass = 'tag-meat'; icon = 'fa-bacon'; }
+        else if(type === '大荤'){ tagClass = 'tag-big-meat'; icon = 'fa-drumstick-bite'; }
+        else if(type === '汤品'){ tagClass = 'tag-soup'; icon = 'fa-mug-hot'; }
+
+        if(dish){
+            // 大图+放大文字展示
+            html += `
+            <div class="border border-[#ECE5D8] rounded-2xl p-5">
+                <span class="text-sm font-medium px-3 py-1 rounded-full ${tagClass} inline-block mb-4">
+                    <i class="fa-solid ${icon} mr-1"></i>${type}
+                </span>
+                <div class="flex flex-col sm:flex-row gap-6 items-center">
+                    <div class="w-48 h-48 rounded-xl overflow-hidden flex-shrink-0 dish-image">
+                        ${dish.image ? `<img src="${dish.image}" alt="${dish.name}" loading="lazy" onerror="this.style.display='none'" class="w-full h-full object-cover">` 
+                        : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-5xl text-[#8A8A8A]"></i></div>`}
+                    </div>
+                    <div class="flex-1 text-center sm:text-left">
+                        <h4 class="text-2xl font-bold text-[#1A1A1A] mb-3">${dish.name}</h4>
+                        <p class="text-base text-[#8A8A8A]">食材：${dish.ingredients || '暂无食材信息'}</p>
+                    </div>
+                </div>
+            </div>
+            `;
+        }else{
+            html += `
+            <div class="border border-dashed border-[#ECE5D8] rounded-2xl p-6 text-center text-[#8A8A8A]">
+                <i class="fa-solid ${icon} text-2xl mb-2"></i>
+                <p>暂无${type}</p>
+            </div>
+            `;
+        }
+    });
+    document.getElementById('dayDetailBody').innerHTML = html;
+    document.getElementById('dayDetailModal').classList.remove('hidden');
 }
 function renderSelectDishList() {
     const { weekKey, day, type } = state.selectContext;
@@ -1609,6 +1686,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
             if (overlay.id === 'selectDishModal') closeSelectDish();
             if (overlay.id === 'confirmModal') closeConfirm();
             if (overlay.id === 'loginModal') closeLoginModal();
+            if (overlay.id === 'dayDetailModal') closeDayDetailModal();
         }
     });
 });
@@ -1618,16 +1696,21 @@ document.addEventListener('keydown', e => {
         closeSelectDish();
         closeConfirm();
         closeLoginModal();
+        closeDayDetailModal();
     }
 });
 (async function init() {
     checkAccessKey();
-    restoreAdminLogin(); // 修复4：读取本地登录状态
+    restoreAdminLogin(); // 读取本地持久化登录状态
     await loadData();
     updateUI();
     renderWeek();
     renderMenu();
     startRealtimePoll();
+    // 兜底：页面加载完成后再执行一次UI更新
+    setTimeout(()=>{
+        updateUI();
+    }, 300);
 })();
 </script>
 </body>
