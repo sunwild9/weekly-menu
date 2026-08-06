@@ -398,11 +398,13 @@
         padding: 10px 8px !important;
         font-size: 0.9rem;
     }
-    /* 导航按钮缩小padding，防止横向溢出 */
+    /* 导航按钮缩小padding，防止横向溢出，固定最小宽度不压缩 */
     .nav-btn {
-        padding-inline: 10px !important;
-        font-size: 12px;
-    }
+       padding-inline: 10px !important;
+       font-size: 12px;
+       min-width: 90px;
+       text-align: center;
+   }
     /* 分类标签横向紧凑 */
     .category-pill {
         padding: 4px 10px;
@@ -450,15 +452,14 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <nav class="flex items-center gap-1 sm:gap-2 bg-white/60 rounded-full p-1 border border-white/60">
-                    <button onclick="switchPage('weekly')" id="nav-weekly" class="nav-btn active px-2 sm:px-6 py-2 rounded-full text-sm font-medium">
-                        <i class="fa-regular fa-calendar mr-1.5"></i>每周菜单
-                    </button>
-                    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn px-2 sm:px-4 py-2 rounded-full text-sm font-medium">
-                                <i class="fa-solid fa-book-open mr-1.5"></i>总菜单
-                    </button>
-                </nav>
-
+               <nav class="flex items-center gap-2 sm:gap-3 bg-white/60 rounded-full p-1.5 border border-white/60 flex-nowrap">
+    <button onclick="switchPage('weekly')" id="nav-weekly" class="nav-btn active px-3 sm:px-5 py-2 rounded-full text-sm font-medium flex-none whitespace-nowrap">
+        <i class="fa-regular fa-calendar mr-1.5"></i>每周菜单
+    </button>
+    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn px-3 sm:px-5 py-2 rounded-full text-sm font-medium flex-none whitespace-nowrap">
+        <i class="fa-solid fa-book-open mr-1.5"></i>总菜单
+    </button>
+</nav>
                 <!-- 用户区域 -->
                 <div id="userArea" class="flex items-center gap-2">
                     <button id="loginBtn" onclick="openLoginModal()" class="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white border border-[#ECE5D8] text-sm font-medium text-[#1A1A1A] hover:border-[#C73E1D] transition">
@@ -506,7 +507,7 @@
                     <button onclick="changeWeek(-1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
                         <i class="fa-solid fa-chevron-left"></i>
                     </button>
-                    <button onclick="goToThisWeek()" class="px-3 h-9 rounded-xl hover:bg-[#FAF6EF] text-sm font-medium text-[#1A1A1A] transition">
+                    <button onclick="goToThisWeek()" class="px-3 h-9 rounded-xl hover:bg-[#FAF6EF] text-sm font-medium text-[#1A1A1A] transition flex-none">
                         本周
                     </button>
                     <button onclick="changeWeek(1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
@@ -514,10 +515,9 @@
                     </button>
                 </div>
             </div>
-
-            <!-- 统计信息 -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5">
-    <div class="stat-card">
+<!-- 统计信息：横向固定滚动，不自动换行压缩 -->
+<div class="flex gap-2 sm:gap-3 mb-5 overflow-x-auto pb-2" style="scrollbar-width: thin;">
+    <div class="stat-card flex-none min-w-[180px]">
         <div>
             <p class="text-xs text-[#8A8A8A] mb-1">总菜品</p>
             <p class="text-2xl font-bold text-[#1A1A1A]"><span id="statTotal">0</span><span class="text-sm font-normal text-[#8A8A8A]">/21</span></p>
@@ -526,7 +526,7 @@
             <i class="fa-solid fa-utensils text-[#1A1A1A]"></i>
         </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card flex-none min-w-[180px]">
         <div>
             <p class="text-xs text-[#8A8A8A] mb-1">素菜</p>
             <p class="text-2xl font-bold text-[#6A994E]"><span id="statVeg">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
@@ -535,7 +535,7 @@
             <i class="fa-solid fa-leaf text-[#6A994E]"></i>
         </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card flex-none min-w-[180px]">
         <div>
             <p class="text-xs text-[#8A8A8A] mb-1">小荤</p>
             <p class="text-2xl font-bold text-[#F4A261]"><span id="statSmallMeat">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
@@ -544,7 +544,7 @@
             <i class="fa-solid fa-bacon text-[#F4A261]"></i>
         </div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card flex-none min-w-[180px]">
         <div>
             <p class="text-xs text-[#8A8A8A] mb-1">大荤</p>
             <p class="text-2xl font-bold text-[#BC4749]"><span id="statBigMeat">0</span><span class="text-sm font-normal text-[#8A8A8A]">/7</span></p>
@@ -847,20 +847,6 @@ let state = {
     lastUpdateTime: 0,
     realtimeTimer: null
 };
-// 平滑滚动到指定日期卡片
-function scrollToDayCard(index) {
-    const targetCard = document.getElementById(`day-card-${index}`);
-    if (!targetCard) return;
-    // 平滑滚动到卡片顶部
-    targetCard.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-    });
-    // 清除所有按钮激活状态
-    document.querySelectorAll('.day-nav-btn').forEach(btn => btn.classList.remove('active'));
-    // 当前点击按钮高亮
-    event.target.closest('.day-nav-btn').classList.add('active');
-}
 // 链接密钥校验，无密钥直接拦截页面
 function checkAccessKey() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1282,7 +1268,6 @@ function renderWeek() {
         const today = isToday(date);
         const btn = document.createElement('button');
         btn.className = `day-nav-btn ${today ? 'today-tag' : ''}`;
-        btn.onclick = () => scrollToDayCard(idx);
         btn.innerHTML = `
             <div class="text-xs opacity-75">${formatDateShort(date)}</div>
             <div class="text-sm font-bold mt-0.5">${dayName}${today ? '<span class="text-[10px] block">今天</span>' : ''}</div>
