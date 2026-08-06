@@ -340,7 +340,36 @@
             background: #FDE8D0;
             color: #C97A2A;
         }
-    /* 手机全局适配补充 */
+    /* 日期导航按钮样式 */
+   #dayScrollNav::-webkit-scrollbar {
+           display: none;
+   }
+   #dayScrollNav {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+   }
+   .day-nav-btn {
+         min-width: 72px;
+         padding: 8px 6px;
+         border-radius: 14px;
+         text-align: center;
+         border: 1.5px solid var(--border);
+         background: white;
+        transition: all 0.2s;
+        cursor: pointer;
+   }
+   .day-nav-btn:hover {
+        border-color: var(--primary);
+   }
+   .day-nav-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+   }
+   .day-nav-btn.today-tag {
+        border-color: var(--primary);
+   }
+/* 手机全局适配补充 */
     @media (max-width: 640px) {
     h2.text-3xl, h2.text-2xl {
         font-size: 1.4rem !important;
@@ -516,47 +545,12 @@
                     </div>
                 </div>
             </div>
-            <!-- 移动端周日期快速跳转导航 -->
-<div id="dayScrollNav" class="mb-5 overflow-x-auto flex gap-2 py-1 scrollbar-hide">
-    <div id="dayNavWrap" class="flex gap-2 whitespace-nowrap min-w-max">
-        <!-- JS动态生成周一~周日按钮 -->
-    </div>
-</div>
-<style>
-/* 隐藏横向滚动条，保留滑动 */
-#dayScrollNav::-webkit-scrollbar {
-    display: none;
-}
-#dayScrollNav {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-.day-nav-btn {
-    min-width: 72px;
-    padding: 8px 6px;
-    border-radius: 14px;
-    text-align: center;
-    border: 1.5px solid var(--border);
-    background: white;
-    transition: all 0.2s;
-    cursor: pointer;
-}
-.day-nav-btn:hover {
-    border-color: var(--primary);
-}
-.day-nav-btn.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-}
-.day-nav-btn.today-tag {
-    border-color: var(--primary);
-}
-</style>
-<!-- 7天卡片容器，给每个day-card增加唯一id用于锚点 -->
-<div id="weekGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-    <!-- JS动态生成 -->
-</div>
+             <!-- 移动端周日期快速跳转导航 -->
+             <div id="dayScrollNav" class="mb-5 overflow-x-auto flex gap-2 py-1 scrollbar-hide">
+                  <div id="dayNavWrap" class="flex gap-2 whitespace-nowrap min-w-max">
+                        <!-- JS动态生成周一~周日按钮 -->
+                  </div>
+            </div>
             <!-- 七天卡片 -->
             <div id="weekGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 <!-- 由JS动态生成 -->
@@ -1110,9 +1104,6 @@ function updateUI() {
     const userMenu = document.getElementById('userMenu');
     if (state.isAdmin) {
         adminElements.forEach(el => el.classList.remove('visitor-hidden'));
-    } else {
-        adminElements.forEach(el => el.classList.add('visitor-hidden'));
-    }
         loginBtn.classList.add('hidden');
         userMenu.classList.remove('hidden');
         userMenu.classList.add('flex');
