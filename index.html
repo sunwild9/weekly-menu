@@ -371,6 +371,20 @@
    }
 /* 手机全局适配补充 */
     @media (max-width: 640px) {
+    /* 原有手机样式不动，新增下面两行 */
+    .grid.grid-cols-1.sm\:grid-cols-3 {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 8px;
+        padding-bottom: 4px;
+    }
+    .grid.grid-cols-1.sm\:grid-cols-3 > div.stat-card {
+        min-width: 130px;
+        flex: 1;
+    }
+    /* 原有其他手机样式保留 */
+}
     h2.text-3xl, h2.text-2xl {
         font-size: 1.4rem !important;
     }
@@ -429,16 +443,20 @@
         width: 100% !important;
     }
 }
+html, body {
+    min-width: 320px;
+    width: 100%;
+}
     </style>
 </head>
 <body>
     <!-- 装饰背景 -->
-    <div class="decor-blob" style="width: 400px; height: 400px; background: var(--accent); top: -100px; right: -100px;"></div>
-    <div class="decor-blob" style="width: 500px; height: 500px; background: var(--primary); bottom: -200px; left: -200px; opacity: 0.15;"></div>
+    <div class="decor-blob" style="width: 280px; height: 280px; background: var(--accent); top: -60px; right: -60px;"></div>
+    <div class="decor-blob" style="width: 320px; height: 320px; background: var(--primary); bottom: -80px; left: -80px; opacity: 0.12;"></div>
 
     <!-- 顶部导航 -->
     <header class="sticky top-0 z-40 glass border-b border-white/40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
             <div class="flex items-center gap-3">
                 <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#C73E1D] to-[#F4A261] flex items-center justify-center shadow-lg">
                     <i class="fa-solid fa-utensils text-white text-lg"></i>
@@ -450,11 +468,11 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <nav class="flex items-center gap-1 sm:gap-2 bg-white/60 rounded-full p-1 border border-white/60">
-                    <button onclick="switchPage('weekly')" id="nav-weekly" class="nav-btn active px-2 sm:px-6 py-2 rounded-full text-sm font-medium">
+                <nav class="flex items-center flex-wrap gap-1 sm:gap-3 lg:gap-4 bg-white/60 rounded-full p-1 sm:p-1.5 border border-white/60">
+                    <button onclick="switchPage('weekly')" id="nav-weekly" class="nav-btn active px-2 sm:px-4 py-2 rounded-full text-sm font-medium">
                         <i class="fa-regular fa-calendar mr-1.5"></i>每周菜单
                     </button>
-                    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn admin-only visitor-hidden px-2 sm:px-6 py-2 rounded-full text-sm font-medium">
+                    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn visitor-hidden px-2 sm:px-4 py-2 rounded-full text-sm font-medium">
                             <i class="fa-solid fa-book-open mr-1.5"></i>总菜单
                     </button>
                 </nav>
@@ -479,7 +497,7 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10 min-w-[320px]">
 
         <!-- ============== 每周菜单页面 ============== -->
         <section id="page-weekly" class="page-content active">
@@ -502,22 +520,21 @@
                     <h2 class="text-3xl sm:text-4xl font-bold text-[#1A1A1A]" id="weekTitle"></h2>
                 </div>
 
-                <div class="flex justify-end">
-                      <div class="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-[#ECE5D8]">
-                            <button onclick="changeWeek(-1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
-                                   <i class="fa-solid fa-chevron-left"></i>
-                            </button>
-                            <button onclick="goToThisWeek()" class="px-3 h-9 rounded-xl hover:bg-[#FAF6EF] text-sm font-medium text-[#1A1A1A] transition">
-                                   本周
-                            </button>
-                           <button onclick="changeWeek(1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
-                                  <i class="fa-solid fa-chevron-right"></i>
-                           </button>
-                   </div>
+                <div class="flex items-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-[#ECE5D8]">
+                    <button onclick="changeWeek(-1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button onclick="goToThisWeek()" class="px-3 h-9 rounded-xl hover:bg-[#FAF6EF] text-sm font-medium text-[#1A1A1A] transition">
+                        本周
+                    </button>
+                    <button onclick="changeWeek(1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- 统计信息 -->
-            <div class="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-5 w-full">
                 <div class="stat-card">
                     <div>
                         <p class="text-xs text-[#8A8A8A] mb-1">总菜品</p>
@@ -553,7 +570,7 @@
                   </div>
             </div>
             <!-- 七天卡片 -->
-            <div id="weekGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+            <div id="weekGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                 <!-- 由JS动态生成 -->
             </div>
 
@@ -672,7 +689,7 @@
 
     <!-- ============== 菜品表单模态框 ============== -->
     <div id="dishFormModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full modal-content animate-scale-in">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-[92vw] modal-content animate-scale-in">
             <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between">
                 <h3 class="text-xl font-bold" id="dishFormTitle">添加菜品</h3>
                 <button onclick="closeDishForm()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
@@ -778,21 +795,6 @@
         </div>
     </div>
 
-    <!-- ========== 新增：每日菜单弹窗 放在这里 ========== -->
-    <div id="dayDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full modal-content animate-scale-in">
-            <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between">
-                <h3 class="text-xl font-bold" id="dayDetailTitle">周一菜单</h3>
-                <button onclick="closeDayDetail()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="p-6 space-y-4" id="dayDetailContent">
-                <!-- JS动态渲染放大版菜品 -->
-            </div>
-        </div>
-    </div>
-
     <!-- Toast 通知 -->
     <div id="toast" class="toast"></div>
 
@@ -841,63 +843,19 @@ let state = {
     lastUpdateTime: 0,
     realtimeTimer: null
 };
-// 指定日期卡片
+// 平滑滚动到指定日期卡片
 function scrollToDayCard(index) {
-    // 清除按钮高亮
-    document.querySelectorAll('.day-nav-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.closest('.day-nav-btn').classList.add('active');
-
-    const dates = getWeekDates(state.currentWeekOffset);
-    const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    const dayName = dayNames[index];
-    const selectDate = dates[index];
-    const weekKey = getCurrentWeekKey();
-    const weekMenu = state.weeklyMenus[weekKey] || {};
-    const dayMenu = weekMenu[dayName] || {};
-    const slots = ['素菜', '小荤', '大荤', '汤品'];
-
-    // 设置弹窗标题
-    document.getElementById('dayDetailTitle').textContent = `${dayName} ${formatDate(selectDate)}`;
-    let html = '';
-    slots.forEach(type => {
-        const dishId = dayMenu[type];
-        const dish = dishId ? getDishById(dishId) : null;
-        let tagClass, icon;
-        if(type === '素菜'){ tagClass = 'tag-veg'; icon = 'fa-leaf'; }
-        else if(type === '小荤'){ tagClass = 'tag-meat'; icon = 'fa-bacon'; }
-        else if(type === '大荤'){ tagClass = 'tag-big-meat'; icon = 'fa-drumstick-bite'; }
-        else if(type === '汤品'){ tagClass = 'tag-soup'; icon = 'fa-mug-hot'; }
-
-        if (dish) {
-            html += `
-            <div class="flex gap-4 p-4 rounded-xl border border-[#ECE5D8]">
-                <div class="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 dish-image">
-                    ${dish.image ? `<img src="${dish.image}" alt="${dish.name}" loading="lazy" onerror="this.style.display='none'" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-3xl text-[#8A8A8A]"></i></div>`}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <span class="text-sm font-medium px-2 py-1 rounded ${tagClass}">${type}</span>
-                    <h4 class="text-xl font-bold mt-2 text-[#1A1A1A]">${dish.name}</h4>
-                    <p class="text-base text-[#8A8A8A] mt-1">食材：${dish.ingredients || '无'}</p>
-                </div>
-            </div>
-            `;
-        } else {
-            html += `
-            <div class="p-6 rounded-xl border border-dashed border-[#ECE5D8] text-center text-[#8A8A8A]">
-                <i class="fa-solid fa-plus text-xl block mb-2"></i>
-                <p class="text-base">暂无${type}</p>
-            </div>
-            `;
-        }
+    const targetCard = document.getElementById(`day-card-${index}`);
+    if (!targetCard) return;
+    // 平滑滚动到卡片顶部
+    targetCard.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
     });
-    document.getElementById('dayDetailContent').innerHTML = html;
-    // 打开弹窗
-    document.getElementById('dayDetailModal').classList.remove('hidden');
-}
-
-// 新增关闭弹窗函数
-function closeDayDetail() {
-    document.getElementById('dayDetailModal').classList.add('hidden');
+    // 清除所有按钮激活状态
+    document.querySelectorAll('.day-nav-btn').forEach(btn => btn.classList.remove('active'));
+    // 当前点击按钮高亮
+    event.target.closest('.day-nav-btn').classList.add('active');
 }
 // 链接密钥校验，无密钥直接拦截页面
 function checkAccessKey() {
@@ -1651,7 +1609,6 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
             if (overlay.id === 'selectDishModal') closeSelectDish();
             if (overlay.id === 'confirmModal') closeConfirm();
             if (overlay.id === 'loginModal') closeLoginModal();
-            if (overlay.id === 'dayDetailModal') closeDayDetail(); // 新增
         }
     });
 });
@@ -1661,7 +1618,6 @@ document.addEventListener('keydown', e => {
         closeSelectDish();
         closeConfirm();
         closeLoginModal();
-        closeDayDetail(); // 新增
     }
 });
 (async function init() {
