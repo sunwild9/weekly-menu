@@ -342,27 +342,64 @@
         }
     /* 手机全局适配补充 */
     @media (max-width: 640px) {
-        h2.text-3xl, h2.text-2xl {
-            font-size: 1.5rem !important;
-        }
-        .day-card p.text-base {
-            font-size: 0.95rem;
-        }
-        .stat-card {
-            padding: 12px;
-        }
-        .stat-card p.text-2xl {
-            font-size: 1.5rem;
-        }
-        /* 菜品卡片缩小内边距 */
-        .menu-grid > div .p-4 {
-            padding: 12px;
-        }
-        /* 弹窗内间距缩小 */
-        .modal-content .p-6 {
-            padding: 16px !important;
-        }
+    h2.text-3xl, h2.text-2xl {
+        font-size: 1.4rem !important;
     }
+    .day-card p.text-base {
+        font-size: 0.9rem;
+    }
+    /* 统计卡片：手机3列自动1列，紧凑内边距，不拉伸 */
+    .stat-card {
+        padding: 10px 12px;
+    }
+    .stat-card p.text-2xl {
+        font-size: 1.4rem;
+    }
+    /* 菜品网格手机1列，消除超大间距 */
+    .menu-grid {
+        gap: 12px !important;
+    }
+    .menu-grid > div .p-4 {
+        padding: 10px;
+    }
+    /* 底部操作按钮自适应，不占满整行 */
+    .admin-only.flex-wrap button {
+        flex: 1;
+        min-width: 110px;
+        padding: 10px 8px !important;
+        font-size: 0.9rem;
+    }
+    /* 导航按钮缩小padding，防止横向溢出 */
+    .nav-btn {
+        padding-inline: 10px !important;
+        font-size: 12px;
+    }
+    /* 分类标签横向紧凑 */
+    .category-pill {
+        padding: 4px 10px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    /* 周标题区域缩小间距 */
+    #weekTitle {
+        line-height: 1.3;
+    }
+    /* 每日卡片网格缩小间隙 */
+    #weekGrid {
+        gap: 12px !important;
+    }
+    .day-card .p-4 {
+        padding: 12px !important;
+    }
+    /* 弹窗全局缩小边距 */
+    .modal-content .p-6 {
+        padding: 14px !important;
+    }
+    /* 搜索框适配手机宽度 */
+    #searchInput {
+        width: 100% !important;
+    }
+}
     </style>
 </head>
 <body>
@@ -388,8 +425,8 @@
                     <button onclick="switchPage('weekly')" id="nav-weekly" class="nav-btn active px-2 sm:px-6 py-2 rounded-full text-sm font-medium">
                         <i class="fa-regular fa-calendar mr-1.5"></i>每周菜单
                     </button>
-                    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn px-2 sm:px-6 py-2 rounded-full text-sm font-medium">
-                        <i class="fa-solid fa-book-open mr-1.5"></i>总菜单
+                    <button onclick="switchPage('menu')" id="nav-menu" class="nav-btn visitor-hidden px-2 sm:px-6 py-2 rounded-full text-sm font-medium">
+                            <i class="fa-solid fa-book-open mr-1.5"></i>总菜单
                     </button>
                 </nav>
 
@@ -450,7 +487,7 @@
             </div>
 
             <!-- 统计信息 -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-5">
                 <div class="stat-card">
                     <div>
                         <p class="text-xs text-[#8A8A8A] mb-1">总菜品</p>
@@ -479,27 +516,67 @@
                     </div>
                 </div>
             </div>
-
+            <!-- 移动端周日期快速跳转导航 -->
+<div id="dayScrollNav" class="mb-5 overflow-x-auto flex gap-2 py-1 scrollbar-hide">
+    <div id="dayNavWrap" class="flex gap-2 whitespace-nowrap min-w-max">
+        <!-- JS动态生成周一~周日按钮 -->
+    </div>
+</div>
+<style>
+/* 隐藏横向滚动条，保留滑动 */
+#dayScrollNav::-webkit-scrollbar {
+    display: none;
+}
+#dayScrollNav {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.day-nav-btn {
+    min-width: 72px;
+    padding: 8px 6px;
+    border-radius: 14px;
+    text-align: center;
+    border: 1.5px solid var(--border);
+    background: white;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.day-nav-btn:hover {
+    border-color: var(--primary);
+}
+.day-nav-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+.day-nav-btn.today-tag {
+    border-color: var(--primary);
+}
+</style>
+<!-- 7天卡片容器，给每个day-card增加唯一id用于锚点 -->
+<div id="weekGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+    <!-- JS动态生成 -->
+</div>
             <!-- 七天卡片 -->
-            <div id="weekGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div id="weekGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 <!-- 由JS动态生成 -->
             </div>
 
             <!-- 操作按钮区（仅管理员） -->
-            <div class="mt-6 flex flex-wrap items-center justify-center gap-3 admin-only visitor-hidden">
-                <button onclick="saveWeekMenu()" class="btn-success px-4 sm:px-6 py-3 rounded-2xl font-medium flex items-center gap-2 shadow-sm">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    保存本周菜单
-                </button>
-                <button onclick="clearWeekMenu()" class="btn-outline-danger px-4 sm:px-6 py-3 rounded-2xl font-medium flex items-center gap-2">
-                    <i class="fa-solid fa-trash"></i>
-                    清除本周菜单
-                </button>
-                <button onclick="autoArrange()" class="btn-primary px-4 sm:px-6 py-3 rounded-2xl font-medium flex items-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    一键智能排菜
-                </button>
-            </div>
+            <div class="mt-5 flex flex-wrap items-center justify-center gap-2 admin-only visitor-hidden">
+    <button onclick="saveWeekMenu()" class="btn-success px-3 sm:px-5 py-2.5 rounded-xl font-medium flex items-center justify-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-floppy-disk"></i>
+        保存
+    </button>
+    <button onclick="clearWeekMenu()" class="btn-outline-danger px-3 sm:px-5 py-2.5 rounded-xl font-medium flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-trash"></i>
+        清除
+    </button>
+    <button onclick="autoArrange()" class="btn-primary px-3 sm:px-5 py-2.5 rounded-xl font-medium flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        智能排菜
+    </button>
+</div>
         </section>
 
         <!-- ============== 总菜单页面 ============== -->
@@ -515,9 +592,9 @@
                            <span style="color:#8A8A8A">汤品:<span id="countSoup">0</span></span>
                      </p>
                 </div>
-                <button onclick="openDishForm()" class="btn-primary px-5 py-2.5 rounded-2xl font-medium flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i>添加新菜品
-                </button>
+                <button onclick="openDishForm()" class="btn-primary px-4 py-2 rounded-xl font-medium flex items-center gap-1.5 text-sm">
+    <i class="fa-solid fa-plus"></i>添加菜品
+</button>
             </div>
 
             <!-- 分类筛选 -->
@@ -754,7 +831,20 @@ let state = {
     lastUpdateTime: 0,
     realtimeTimer: null
 };
-
+// 平滑滚动到指定日期卡片
+function scrollToDayCard(index) {
+    const targetCard = document.getElementById(`day-card-${index}`);
+    if (!targetCard) return;
+    // 平滑滚动到卡片顶部
+    targetCard.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    });
+    // 清除所有按钮激活状态
+    document.querySelectorAll('.day-nav-btn').forEach(btn => btn.classList.remove('active'));
+    // 当前点击按钮高亮
+    event.target.closest('.day-nav-btn').classList.add('active');
+}
 // 链接密钥校验，无密钥直接拦截页面
 function checkAccessKey() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1020,6 +1110,9 @@ function updateUI() {
     const userMenu = document.getElementById('userMenu');
     if (state.isAdmin) {
         adminElements.forEach(el => el.classList.remove('visitor-hidden'));
+    } else {
+        adminElements.forEach(el => el.classList.add('visitor-hidden'));
+    }
         loginBtn.classList.add('hidden');
         userMenu.classList.remove('hidden');
         userMenu.classList.add('flex');
@@ -1108,6 +1201,8 @@ function renderWeek() {
         const today = isToday(date);
         const card = document.createElement('div');
         card.className = `day-card card-shadow ${today ? 'today' : ''}`;
+        // 新增：给每日卡片设置唯一锚点ID，用于滚动跳转
+        card.id = `day-card-${idx}`;
         const slots = ['素菜', '小荤', '大荤', '汤品'];
         const slotsHtml = slots.map(type => {
             const dishId = dayMenu[type];
@@ -1160,6 +1255,21 @@ function renderWeek() {
             </div>
             <div class="p-2 space-y-1">${slotsHtml}</div>`;
         grid.appendChild(card);
+    });
+    // ========== 新增：渲染顶部日期快速跳转导航按钮 ==========
+    const navWrap = document.getElementById('dayNavWrap');
+    navWrap.innerHTML = '';
+    dates.forEach((date, idx) => {
+        const dayName = dayNames[idx];
+        const today = isToday(date);
+        const btn = document.createElement('button');
+        btn.className = `day-nav-btn ${today ? 'today-tag' : ''}`;
+        btn.onclick = () => scrollToDayCard(idx);
+        btn.innerHTML = `
+            <div class="text-xs opacity-75">${formatDateShort(date)}</div>
+            <div class="text-sm font-bold mt-0.5">${dayName}${today ? '<span class="text-[10px] block">今天</span>' : ''}</div>
+        `;
+        navWrap.appendChild(btn);
     });
     document.getElementById('statTotal').textContent = totalDishes;
     document.getElementById('statVeg').textContent = vegCount;
