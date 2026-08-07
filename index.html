@@ -7,6 +7,9 @@
     <meta name="googlebot" content="noindex,nofollow">
     <meta name="baidu-spider" content="noindex,nofollow">
     <meta name="sogou_spider" content="noindex,nofollow">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>周菜单管家 · 智能排菜系统</title>
     <script src="https://cdn.tailwindcss.com">
     </script>
@@ -862,9 +865,10 @@
 <script>
 // ========== Cloudflare Workers 后端接口 替换为你自己的Worker域名
 const API_BASE = "/api/menu";
-const ADMIN_SECRET = "kebao@4083789";
 const PUBLIC_ACCESS_KEY = "menu-view-9876secret";
-const STORAGE_KEY = 'weekMenuManager_data';
+// 管理员登录凭证存在localStorage，不再明文写密码
+const ADMIN_TOKEN_KEY = "admin_login_token";
+const ADMIN_EXPIRE_KEY = "admin_token_expire";
 // 默认菜品数据（后端无数据时初始化）
 const DEFAULT_DISHES = [
     { id: 1, name: '宫保鸡丁', category: '大荤', image: '', ingredients: '鸡胸肉、花生、干辣椒' },
@@ -916,12 +920,20 @@ function checkAccessKey() {
     }
 }
 
-// 【修复4：登录持久化 读取本地管理员状态】
+// 读取登录状态，校验token是否过期
 function restoreAdminLogin() {
-    const localIsAdmin = localStorage.getItem("isAdmin");
-    if (localIsAdmin === "true") {
-        state.isAdmin = true;
-    }
+  const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+  const expire = Number(localStorage.getItem(ADMIN_EXPIRE_KEY)) || 0;
+  const now = Date.now();
+  // token存在且未过期则为管理员
+  if (token && expire > now) {
+    state.isAdmin = true;
+  } else {
+    // 过期自动清空登录
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    localStorage.removeItem(ADMIN_EXPIRE_KEY);
+    state.isAdmin = false;
+  }
 }
 
 // 后端接口封装
@@ -936,13 +948,15 @@ async function apiGetData() {
     return json.data;
 }
 async function apiSetData(fullData) {
+    // 读取本地登录token传给后端校验
+    const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
     const res = await fetch(`${API_BASE}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             action: "set",
             accessKey: PUBLIC_ACCESS_KEY,
-            adminKey: ADMIN_SECRET,
+            adminToken: adminToken, // 仅传后端生成的token，无明文密钥
             data: fullData
         })
     });
@@ -1125,22 +1139,37 @@ function openLoginModal() {
 function closeLoginModal() {
     document.getElementById('loginModal').classList.add('hidden');
 }
-function doLogin() {
-    const username = document.getElementById('loginUsername').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-    if (!username || !password) {
-        showToast('请输入账号和密码', 'error');
-        return;
-    }
-    if (username === 'kebao' && password === 'kebao@4083789') {
-        state.isAdmin = true;
-        localStorage.setItem("isAdmin", "true"); // 【修复4】持久化登录
-        closeLoginModal();
-        updateUI();
-        showToast('管理员登录成功', 'success');
-    } else {
-        showToast('账号或密码错误', 'error');
-    }
+async function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  if (!username || !password) {
+    showToast('请输入账号和密码', 'error');
+    return;
+  }
+  try {
+    // 调用后端登录接口校验
+    const res = await fetch(`${API_BASE}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "login",
+        accessKey: PUBLIC_ACCESS_KEY,
+        username,
+        password
+      })
+    });
+    const json = await res.json();
+    if (json.code !== 200) throw new Error(json.msg);
+    // 登录成功，存储token和过期时间
+    localStorage.setItem(ADMIN_TOKEN_KEY, json.data.token);
+    localStorage.setItem(ADMIN_EXPIRE_KEY, json.data.expire);
+    state.isAdmin = true;
+    closeLoginModal();
+    updateUI();
+    showToast('管理员登录成功', 'success');
+  } catch (e) {
+    showToast(e.message || '登录失败', 'error');
+  }
 }
 function logout() {
     const weekKey = getCurrentWeekKey();
@@ -1151,8 +1180,10 @@ function logout() {
             '未保存的更改',
             '当前周菜单尚未保存，退出后将丢失更改。确定要退出吗？',
             () => {
+                // 清空登录凭证
+                localStorage.removeItem(ADMIN_TOKEN_KEY);
+                localStorage.removeItem(ADMIN_EXPIRE_KEY);
                 state.isAdmin = false;
-                localStorage.removeItem("isAdmin"); // 清除登录缓存
                 state.hasUnsaved = false;
                 updateUI();
                 switchPage('weekly');
@@ -1162,8 +1193,9 @@ function logout() {
         );
         return;
     }
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    localStorage.removeItem(ADMIN_EXPIRE_KEY);
     state.isAdmin = false;
-    localStorage.removeItem("isAdmin");
     state.hasUnsaved = false;
     updateUI();
     switchPage('weekly');
@@ -1535,22 +1567,33 @@ async function autoArrange() {
     renderWeek();
     showToast('已为您智能排菜，请记得保存', 'success');
 }
+// 示例：保存菜品、保存周菜单捕获报错
 async function saveWeekMenu() {
     if (!state.isAdmin) return;
     const weekKey = getCurrentWeekKey();
     const hasDishes = hasWeekDishes(weekKey);
     if (!hasDishes) {
         showToast('菜单为空，无法发布', 'error');
-        // 空菜单也强制刷新页面，恢复七日卡片
         renderWeek();
         return;
     }
     state.publishedWeeks[weekKey] = true;
     state.hasUnsaved = false;
-    await saveData();
-    renderWeek();
-    updatePublishBadge();
-    showToast('本周菜单已发布，访客可见', 'success');
+    try {
+        await saveData();
+        renderWeek();
+        updatePublishBadge();
+        showToast('本周菜单已发布，访客可见', 'success');
+    } catch (err) {
+        // 后端返回401=token失效，强制退出登录
+        if (err.message.includes("401") || err.message.includes("管理员未登录")) {
+            showToast("登录已失效，请重新登录", "error");
+            logout();
+            openLoginModal();
+        } else {
+            showToast(err.message, "error");
+        }
+    }
 }
 function clearWeekMenu() {
     if (!state.isAdmin) return;
