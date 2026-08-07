@@ -11,6 +11,9 @@
     <script src="https://cdn.tailwindcss.com">
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Cropper 图片裁剪 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.js"></script>
     <style>
         :root {
             --primary: #C73E1D;
@@ -703,7 +706,7 @@
 
     <!-- ============== 菜品表单模态框 ============== -->
     <div id="dishFormModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-[92vw] modal-content animate-scale-in">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg modal-content animate-scale-in">
             <div class="p-6 border-b border-[#ECE5D8] flex items-center justify-between">
                 <h3 class="text-xl font-bold" id="dishFormTitle">添加菜品</h3>
                 <button onclick="closeDishForm()" class="w-9 h-9 rounded-full hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A]">
@@ -711,21 +714,49 @@
                 </button>
             </div>
             <div class="p-6 space-y-4">
-                <!-- 图片预览 -->
-                <div class="flex justify-center">
-                    <div class="relative">
-                        <img id="dishImagePreview" src="" alt="" class="w-28 h-28 rounded-2xl object-cover border-2 border-dashed border-[#ECE5D8] hidden">
-                        <div id="dishImagePlaceholder" class="w-28 h-28 rounded-2xl bg-[#FAF6EF] border-2 border-dashed border-[#ECE5D8] flex items-center justify-center">
-                            <i class="fa-solid fa-image text-3xl text-[#8A8A8A]"></i>
-                        </div>
-                    </div>
-                </div>
+                <!-- 图片裁剪区域 -->
+<div>
+    <label class="block text-sm font-medium mb-1.5">菜品图片 URL</label>
+    <input type="text" id="dishImage" oninput="loadImageToCropper()" class="input-field" placeholder="粘贴网络图片链接">
+    <p class="mt-1 text-xs text-[#8A8A8A]">仅支持网络图片链接，粘贴链接后可拖拽、缩放裁剪图片</p>
+</div>
 
-                <div>
-                      <label class="block text-sm font-medium mb-1.5">菜品图片 URL</label>
-                      <input type="text" id="dishImage" oninput="previewDishImage()" class="input-field" placeholder="粘贴网络图片链接">
-                      <p class="mt-1 text-xs text-[#8A8A8A]">仅支持网络图片链接，本地图片上传已关闭</p>
-                </div>
+<!-- 裁剪画布容器 -->
+<div id="cropperWrap" class="hidden mt-4">
+    <div class="w-full h-64 bg-[#FAF6EF] rounded-xl overflow-hidden mb-3">
+        <img id="cropTargetImg" class="w-full h-full">
+    </div>
+    <div class="flex flex-wrap gap-2 justify-center mb-3">
+        <button type="button" onclick="cropRotate(-90)" class="px-3 py-1.5 border rounded-lg text-sm">
+            <i class="fa-solid fa-rotate-left mr-1"></i>左旋
+        </button>
+        <button type="button" onclick="cropRotate(90)" class="px-3 py-1.5 border rounded-lg text-sm">
+            <i class="fa-solid fa-rotate-right mr-1"></i>右旋
+        </button>
+        <button type="button" onclick="cropZoom(0.1)" class="px-3 py-1.5 border rounded-lg text-sm">
+            <i class="fa-solid fa-magnifying-glass-plus mr-1"></i>放大
+        </button>
+        <button type="button" onclick="cropZoom(-0.1)" class="px-3 py-1.5 border rounded-lg text-sm">
+            <i class="fa-solid fa-magnifying-glass-minus mr-1"></i>缩小
+        </button>
+        <button type="button" onclick="confirmCrop()" class="btn-success px-3 py-1.5 rounded-lg text-sm">
+            <i class="fa-solid fa-check mr-1"></i>确认裁剪
+        </button>
+    </div>
+</div>
+
+<!-- 裁剪完成缩略预览 -->
+<div class="flex justify-center mt-4">
+    <div class="relative">
+        <img id="dishImagePreview" src="" alt="" class="w-28 h-28 rounded-2xl object-cover border-2 border-solid border-[#6A994E] hidden">
+        <div id="dishImagePlaceholder" class="w-28 h-28 rounded-2xl bg-[#FAF6EF] border-2 border-dashed border-[#ECE5D8] flex items-center justify-center">
+            <i class="fa-solid fa-image text-3xl text-[#8A8A8A]"></i>
+        </div>
+    </div>
+</div>
+
+<!-- 隐藏域存储裁剪后base64图片 -->
+<input type="hidden" id="cropResultBase64" value="">
 
                 <div>
                     <label class="block text-sm font-medium mb-1.5">菜品名称 <span class="text-[#C73E1D]">*</span></label>
@@ -858,6 +889,7 @@ const DEFAULT_DISHES = [
     { id: 20, name: '凉拌木耳', category: '素菜', image: '', ingredients: '木耳、洋葱、香菜' },
     { id: 21, name: '酸辣土豆丝', category: '素菜', image: '', ingredients: '土豆、干辣椒、醋' },
 ];
+let cropper = null; // 图片裁剪实例
 let state = {
     dishes: [],
     weeklyMenus: {},
@@ -873,6 +905,7 @@ let state = {
     lastUpdateTime: 0,
     realtimeTimer: null
 };
+
 // 链接密钥校验，无密钥直接拦截页面
 function checkAccessKey() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1220,9 +1253,30 @@ function renderWeek() {
                           <i class="fa-solid fa-arrow-left"></i>返回本周
                   </button>
          `;
-     } else {
-          weekTipWrap.style.display = 'none';
-     }
+       grid.appendChild(weekTipWrap);
+    // 关键新增：未发布直接return，不执行循环生成每日卡片
+    document.getElementById('statTotal').textContent = 0;
+    document.getElementById('statVeg').textContent = 0;
+    document.getElementById('statSmallMeat').textContent = 0;
+    document.getElementById('statBigMeat').textContent = 0;
+    // 清空顶部日期导航栏
+    const navWrap = document.getElementById('dayNavWrap');
+    navWrap.innerHTML = '';
+    return;
+} else {
+    weekTipWrap.style.display = 'none';
+    grid.appendChild(weekTipWrap);
+    // 正常渲染7天卡片
+    dates.forEach((date, idx) => {
+        // 原有生成day-card完整代码保持不变，无需修改
+    });
+    // 原有渲染顶部日期导航按钮代码保持不变
+    const navWrap = document.getElementById('dayNavWrap');
+    navWrap.innerHTML = '';
+    dates.forEach((date, idx) => {
+        // 原有day-nav-btn生成代码不变
+    });
+}
     grid.appendChild(weekTipWrap);
     dates.forEach((date, idx) => {
         const dayName = dayNames[idx];
@@ -1584,37 +1638,116 @@ function openDishForm(dishId) {
     document.querySelectorAll('#categorySelector .category-pill').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.cat === state.selectedCategory);
     });
-    previewDishImage();
+    if (state.editingDishId) {
+    setTimeout(() => loadImageToCropper(), 100);
+} else {
+    document.getElementById('cropperWrap').classList.add('hidden');
+    document.getElementById('cropResultBase64').value = '';
+}
     modal.classList.remove('hidden');
 }
 function closeDishForm() {
     document.getElementById('dishFormModal').classList.add('hidden');
     state.editingDishId = null;
     state.selectedCategory = null;
+    // 销毁裁剪画布
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    document.getElementById('cropperWrap').classList.add('hidden');
+    document.getElementById('cropResultBase64').value = '';
 }
 function selectDishCategory(btn) {
     document.querySelectorAll('#categorySelector .category-pill').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     state.selectedCategory = btn.dataset.cat;
 }
-function previewDishImage() {
+// 加载链接图片到裁剪画布
+function loadImageToCropper() {
     const url = document.getElementById('dishImage').value.trim();
-    const img = document.getElementById('dishImagePreview');
+    const wrap = document.getElementById('cropperWrap');
+    const targetImg = document.getElementById('cropTargetImg');
+    const preview = document.getElementById('dishImagePreview');
     const placeholder = document.getElementById('dishImagePlaceholder');
-    if (url) {
-        img.src = url;
-        img.classList.remove('hidden');
-        placeholder.classList.add('hidden');
-    } else {
-        img.classList.add('hidden');
-        placeholder.classList.remove('hidden');
+    const base64Input = document.getElementById('cropResultBase64');
+
+    // 清空旧数据
+    preview.classList.add('hidden');
+    placeholder.classList.remove('hidden');
+    base64Input.value = '';
+    wrap.classList.add('hidden');
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
     }
+
+    if (!url) return;
+
+    // 加载图片
+    targetImg.src = url;
+    targetImg.onload = () => {
+        wrap.classList.remove('hidden');
+        // 初始化裁剪器 比例4:3 菜品标准比例
+        cropper = new Cropper(targetImg, {
+            aspectRatio: 4 / 3,
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 0.8,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: true,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: true
+        });
+    };
+    targetImg.onerror = () => {
+        showToast('图片链接加载失败，请更换链接', 'error');
+        wrap.classList.add('hidden');
+    };
+}
+
+// 旋转图片
+function cropRotate(deg) {
+    if (!cropper) return;
+    cropper.rotate(deg);
+}
+
+// 缩放图片
+function cropZoom(ratio) {
+    if (!cropper) return;
+    cropper.zoom(ratio);
+}
+
+// 确认裁剪，生成预览+base64
+function confirmCrop() {
+    if (!cropper) return;
+    // 获取裁剪结果 base64 jpg 质量0.8
+    const base64 = cropper.getCroppedCanvas({
+        maxWidth: 800,
+        maxHeight: 600,
+        fillColor: '#fff'
+    }).toDataURL('image/jpeg', 0.8);
+
+    // 赋值到隐藏域
+    document.getElementById('cropResultBase64').value = base64;
+    // 更新缩略预览
+    const preview = document.getElementById('dishImagePreview');
+    const placeholder = document.getElementById('dishImagePlaceholder');
+    preview.src = base64;
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    showToast('图片裁剪完成', 'success');
 }
 // 已删除本地图片上传函数
 async function saveDish() {
     if (!state.isAdmin) return;
     const name = document.getElementById('dishName').value.trim();
-    const image = document.getElementById('dishImage').value.trim();
+    const rawUrl = document.getElementById('dishImage').value.trim();
+    const cropBase64 = document.getElementById('cropResultBase64').value.trim();
+    const image = cropBase64 || rawUrl;
     const ingredients = document.getElementById('dishIngredients').value.trim();
     const category = state.selectedCategory;
     if (!name) { showToast('请输入菜品名称', 'error'); return; }
