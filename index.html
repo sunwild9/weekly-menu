@@ -1147,20 +1147,21 @@ async function doLogin() {
     return;
   }
   try {
-    // 调用后端登录接口校验
+    const payload = {
+      action: "login",
+      accessKey: PUBLIC_ACCESS_KEY,
+      username,
+      password
+    };
     const res = await fetch(`${API_BASE}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "login",
-        accessKey: PUBLIC_ACCESS_KEY,
-        username,
-        password
-      })
+      headers: {
+        "Content‑Type": "application/json;charset=utf‑8"
+      },
+      body: JSON.stringify(payload)
     });
     const json = await res.json();
     if (json.code !== 200) throw new Error(json.msg);
-    // 登录成功，存储token和过期时间
     localStorage.setItem(ADMIN_TOKEN_KEY, json.data.token);
     localStorage.setItem(ADMIN_EXPIRE_KEY, json.data.expire);
     state.isAdmin = true;

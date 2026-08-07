@@ -31,7 +31,12 @@ function verifyToken(token: string, env: Env) {
 
 export async function onRequestPost(context) {
   const { request, env } = context;
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch(err){
+    return Response.json({code:400,msg:"JSON解析失败，请求格式错误"});
+  }
   const action = body.action;
   const accessKey = body.accessKey;
 
