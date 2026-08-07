@@ -1094,6 +1094,10 @@ async function markCurrentWeekUnpublished() {
         state.hasUnsaved = true;
         updatePublishBadge();
     }
+    // 管理员操作后强制重新渲染页面，不会隐藏卡片
+    if(state.isAdmin){
+        renderWeek();
+    }
 }
 function updatePublishBadge() {
     const weekKey = getCurrentWeekKey();
@@ -1244,37 +1248,52 @@ function renderWeek() {
     grid.innerHTML = '';
     const weekTipWrap = document.createElement('div');
     weekTipWrap.className = 'col-span-full empty-state mb-4 py-6';
-    if (!isPublished) {
-        weekTipWrap.innerHTML = `
-                  <div class="icon-wrap"><i class="fa-solid fa-calendar-xmark"></i></div>
-                  <h3 class="text-xl font-bold text-[#1A1A1A] mb-2">暂无已发布的菜单</h3>
-                  <p class="text-sm text-[#8A8A8A] mb-4">当前周菜单尚未发布，请切换其他已发布周查看</p>
-                  <button onclick="goToThisWeek()" class="btn-primary px-6 py-2.5 rounded-2xl font-medium inline-flex items-center gap-2">
-                          <i class="fa-solid fa-arrow-left"></i>返回本周
-                  </button>
-         `;
-       grid.appendChild(weekTipWrap);
-    // 关键新增：未发布直接return，不执行循环生成每日卡片
+    // 区分两种展示权限：
+// 1. 管理员：无论是否发布，都显示七日卡片，仅未发布展示提示文字不隐藏卡片
+// 2. 访客：只有已发布周才显示七日卡片，未发布只展示空白提示
+const isAdmin = state.isAdmin;
+if (!isPublished && !isAdmin) {
+    // 访客 + 未发布：只展示提示，隐藏所有卡片、导航、统计
+    weekTipWrap.innerHTML = `
+              <div class="icon-wrap"><i class="fa-solid fa-calendar-xmark"></i></div>
+              <h3 class="text-xl font-bold text-[#1A1A1A] mb-2">暂无已发布的菜单</h3>
+              <p class="text-sm text-[#8A8A8A] mb-4">当前周菜单尚未发布，请切换其他已发布周查看</p>
+              <button onclick="goToThisWeek()" class="btn-primary px-6 py-2.5 rounded-2xl font-medium inline-flex items-center gap-2">
+                      <i class="fa-solid fa-arrow-left"></i>返回本周
+              </button>
+     `;
+    grid.appendChild(weekTipWrap);
     document.getElementById('statTotal').textContent = 0;
     document.getElementById('statVeg').textContent = 0;
     document.getElementById('statSmallMeat').textContent = 0;
     document.getElementById('statBigMeat').textContent = 0;
-    // 清空顶部日期导航栏
     const navWrap = document.getElementById('dayNavWrap');
     navWrap.innerHTML = '';
     return;
 } else {
-    weekTipWrap.style.display = 'none';
+    // 两种情况进入这里：
+    // ① 管理员（不管发布/未发布）② 访客 + 已发布
+    if (!isPublished) {
+        // 管理员未发布：提示文字正常显示，但不隐藏七日卡片
+        weekTipWrap.innerHTML = `
+            <div class="icon-wrap" style="background:#FDE8D0;"><i class="fa-solid fa-clock" style="color:#C97A2A;"></i></div>
+            <h3 class="text-xl font-bold text-[#1A1A1A] mb-2">当前菜单未发布</h3>
+            <p class="text-sm text-[#8A8A8A] mb-4">编辑完成后点击【保存】即可发布给访客查看</p>
+        `;
+    } else {
+        weekTipWrap.style.display = 'none';
+    }
     grid.appendChild(weekTipWrap);
-    // 正常渲染7天卡片
+
+    // 渲染七日卡片（管理员永久可见；访客仅已发布可见）
     dates.forEach((date, idx) => {
-        // 原有生成day-card完整代码保持不变，无需修改
+        // 这里原有生成day-card完整代码保持原样，不用动
     });
-    // 原有渲染顶部日期导航按钮代码保持不变
+    // 渲染顶部日期快速导航
     const navWrap = document.getElementById('dayNavWrap');
     navWrap.innerHTML = '';
     dates.forEach((date, idx) => {
-        // 原有day-nav-btn生成代码不变
+        // 原有day-nav-btn生成代码保持原样，不用动
     });
 }
     grid.appendChild(weekTipWrap);
@@ -1521,7 +1540,9 @@ async function saveWeekMenu() {
     const weekKey = getCurrentWeekKey();
     const hasDishes = hasWeekDishes(weekKey);
     if (!hasDishes) {
-        showToast('菜单为空，无法保存', 'error');
+        showToast('菜单为空，无法发布', 'error');
+        // 空菜单也强制刷新页面，恢复七日卡片
+        renderWeek();
         return;
     }
     state.publishedWeeks[weekKey] = true;
