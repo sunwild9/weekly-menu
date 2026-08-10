@@ -874,10 +874,10 @@ const ADMIN_TOKEN_KEY = "admin_login_token";
 (function clearBadToken(){
   let token = localStorage.getItem(ADMIN_TOKEN_KEY);
   if(token){
-    // 过滤掉所有非ASCII字符
     const cleanToken = token.replace(/[^\x00-\x7F]/g, "");
-    if(cleanToken !== token){
+    if(cleanToken !== token || clean.trim() === ""){
         localStorage.removeItem(ADMIN_TOKEN_KEY);
+        localStorage.removeItem(ADMIN_EXPIRE_KEY);
     }
   }
 })();
@@ -961,26 +961,30 @@ async function apiGetData() {
     return json.data;
 }
 async function apiSetData(fullData) {
-    // 读取本地登录token传给后端校验
-    const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
-// =========新增清洗代码========
-if(adminToken){
-    // 删除全部非ISO‑8859‑1的非法字符
-    adminToken = adminToken.replace(/[^\x20-\x7E]/g,"");
-}
-if (!adminToken) {
-    showToast("登录失效，请重新登录", "error");
-    return;
-}
+    let adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
+    // 强制清洗所有非法字符
+    if (adminToken) {
+        adminToken = adminToken.replace(/[^\x20-\x7E\n\r]/g, "");
+    }
+    if (!adminToken || adminToken.trim() === "") {
+        showToast("登录失效，请重新登录", "error");
+        localStorage.removeItem(ADMIN_TOKEN_KEY);
+        localStorage.removeItem(ADMIN_EXPIRE_KEY);
+        state.isAdmin = false;
+        updateUI();
+        return;
+    }
+    // 把token清洗后再塞进body，彻底隔离headers变量污染
+    const sendBody = {
+        action: "set",
+        accessKey: PUBLIC_ACCESS_KEY,
+        adminToken: adminToken,
+        data: fullData
+    };
     const res = await fetch(`${API_BASE}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            action: "set",
-            accessKey: PUBLIC_ACCESS_KEY,
-            adminToken: adminToken, // 仅传后端生成的token，无明文密钥
-            data: fullData
-        })
+        body: JSON.stringify(sendBody)
     });
     const json = await res.json();
     if (json.code !== 200) throw new Error(json.msg);
