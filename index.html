@@ -1179,10 +1179,10 @@ async function doLogin() {
       username,
       password
     };
-    const res = await fetch(`${API_BASE}`, {
+      const res = await fetch(`${API_BASE}`, {
       method: "POST",
       headers: {
-        "Content‑Type": "application/json;charset=utf‑8"
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(payload)
     });
