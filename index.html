@@ -870,6 +870,17 @@ const API_BASE = "/api/menu";
 const PUBLIC_ACCESS_KEY = "menu-view-9876secret";
 // 管理员登录凭证存在localStorage，不再明文写密码
 const ADMIN_TOKEN_KEY = "admin_login_token";
+// 页面加载优先清除损坏token
+(function clearBadToken(){
+  let token = localStorage.getItem(ADMIN_TOKEN_KEY);
+  if(token){
+    // 过滤掉所有非ASCII字符
+    const cleanToken = token.replace(/[^\x00-\x7F]/g, "");
+    if(cleanToken !== token){
+        localStorage.removeItem(ADMIN_TOKEN_KEY);
+    }
+  }
+})();
 const ADMIN_EXPIRE_KEY = "admin_token_expire";
 // 默认菜品数据（后端无数据时初始化）
 const DEFAULT_DISHES = [
@@ -952,6 +963,15 @@ async function apiGetData() {
 async function apiSetData(fullData) {
     // 读取本地登录token传给后端校验
     const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
+// =========新增清洗代码========
+if(adminToken){
+    // 删除全部非ISO‑8859‑1的非法字符
+    adminToken = adminToken.replace(/[^\x20-\x7E]/g,"");
+}
+if (!adminToken) {
+    showToast("登录失效，请重新登录", "error");
+    return;
+}
     const res = await fetch(`${API_BASE}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

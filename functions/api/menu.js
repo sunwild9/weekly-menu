@@ -6,12 +6,16 @@ const TOKEN_EXPIRE = 2 * 60 * 60 * 1000;
 // 生成登录Token
 function generateToken(env) {
   const random = crypto.randomUUID();
-  return btoa(`${random}-${env.ADMIN_SECRET_KEY}`);
+  const raw = `${random}-${env.ADMIN_SECRET_KEY}`;
+  // btoa输出有可能带换行，全部过滤
+  return btoa(raw).replace(/\r?\n/g, '');
 }
 
 // 校验token合法性
 function verifyToken(token, env) {
   if (!token) return false;
+  // 后端也清洗一遍传入的token，去除换行
+  token = token.replace(/\r?\n/g, '');
   try {
     const decode = atob(token);
     return decode.includes(env.ADMIN_SECRET_KEY);
