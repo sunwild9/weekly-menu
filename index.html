@@ -718,10 +718,15 @@
             </div>
             <div class="p-6 space-y-4">
                 <!-- 图片裁剪区域 -->
+<!-- 原有图片URL输入保留，新增本地文件上传 -->
 <div>
-    <label class="block text-sm font-medium mb-1.5">菜品图片 URL</label>
+    <label class="block text-sm font-medium mb-1.5">菜品图片</label>
+    <!-- 本地文件上传input -->
+    <input type="file" id="dishLocalFile" accept="image/jpeg,image/png,image/webp" class="input-field mb-2" onchange="loadLocalFileToCropper(event)">
+    <p class="text-xs text-[#8A8A8A] mb-2">上传本地图片，或粘贴网络图片链接，图片不大于2MB</p>
+    <!-- 原有网络URL输入框保留 -->
     <input type="text" id="dishImage" oninput="loadImageToCropper()" class="input-field" placeholder="粘贴网络图片链接">
-    <p class="mt-1 text-xs text-[#8A8A8A]">仅支持网络图片链接，粘贴链接后可拖拽、缩放裁剪图片</p>
+    <p class="mt-1 text-xs text-[#8A8A8A]">本地文件上传后自动存入R2，裁剪确认后生成在线图片链接</p>
 </div>
 
 <!-- 裁剪画布容器 -->
@@ -757,9 +762,6 @@
         </div>
     </div>
 </div>
-
-<!-- 隐藏域存储裁剪后base64图片 -->
-<input type="hidden" id="cropResultBase64" value="">
 
                 <div>
                     <label class="block text-sm font-medium mb-1.5">菜品名称 <span class="text-[#C73E1D]">*</span></label>
@@ -1707,7 +1709,6 @@ function openDishForm(dishId) {
     setTimeout(() => loadImageToCropper(), 100);
 } else {
     document.getElementById('cropperWrap').classList.add('hidden');
-    document.getElementById('cropResultBase64').value = '';
 }
     modal.classList.remove('hidden');
 }
@@ -1721,12 +1722,58 @@ function closeDishForm() {
         cropper = null;
     }
     document.getElementById('cropperWrap').classList.add('hidden');
-    document.getElementById('cropResultBase64').value = '';
 }
 function selectDishCategory(btn) {
     document.querySelectorAll('#categorySelector .category-pill').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     state.selectedCategory = btn.dataset.cat;
+}
+// 【新增】读取本地上传文件，加载到裁剪画布
+function loadLocalFileToCropper(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+// 新增 2MB 校验
+  if (file.size > 2 * 1024 * 1024) {
+    showToast("图片不大于2MB", "error");
+    e.target.value = "";
+    return;
+  }
+    const reader = new FileReader();
+    const targetImg = document.getElementById('cropTargetImg');
+    const wrap = document.getElementById('cropperWrap');
+    const preview = document.getElementById('dishImagePreview');
+    const placeholder = document.getElementById('dishImagePlaceholder');
+
+    // 重置预览
+    preview.classList.add('hidden');
+    placeholder.classList.remove('hidden');
+    base64Input.value = '';
+    wrap.classList.add('hidden');
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+
+    reader.onload = function(ev) {
+        targetImg.src = ev.target.result;
+        targetImg.onload = () => {
+            wrap.classList.remove('hidden');
+            cropper = new Cropper(targetImg, {
+                aspectRatio: 4 / 3,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 0.8,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: true,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: true
+            });
+        };
+    };
+    reader.readAsDataURL(file);
 }
 // 加载链接图片到裁剪画布
 function loadImageToCropper() {
@@ -1735,7 +1782,6 @@ function loadImageToCropper() {
     const targetImg = document.getElementById('cropTargetImg');
     const preview = document.getElementById('dishImagePreview');
     const placeholder = document.getElementById('dishImagePlaceholder');
-    const base64Input = document.getElementById('cropResultBase64');
 
     // 清空旧数据
     preview.classList.add('hidden');
@@ -1786,33 +1832,58 @@ function cropZoom(ratio) {
     cropper.zoom(ratio);
 }
 
-// 确认裁剪，生成预览+base64
-function confirmCrop() {
+// 确认裁剪 → 上传图片到R2，返回在线URL填充到图片输入框
+async function confirmCrop() {
     if (!cropper) return;
-    // 获取裁剪结果 base64 jpg 质量0.8
-    const base64 = cropper.getCroppedCanvas({
+    const preview = document.getElementById('dishImagePreview');
+    const placeholder = document.getElementById('dishImagePlaceholder');
+    const dishImageInput = document.getElementById('dishImage');
+    const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (!adminToken) {
+        showToast("登录失效，请重新登录", "error");
+        return;
+    }
+
+    // 1. 获取裁剪画布Blob二进制
+    const canvas = cropper.getCroppedCanvas({
         maxWidth: 800,
         maxHeight: 600,
         fillColor: '#fff'
-    }).toDataURL('image/jpeg', 0.8);
+    });
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.6));
 
-    // 赋值到隐藏域
-    document.getElementById('cropResultBase64').value = base64;
-    // 更新缩略预览
-    const preview = document.getElementById('dishImagePreview');
-    const placeholder = document.getElementById('dishImagePlaceholder');
-    preview.src = base64;
-    preview.classList.remove('hidden');
-    placeholder.classList.add('hidden');
-    showToast('图片裁剪完成', 'success');
+    // 2. 组装FormData传给后端上传接口
+    const formData = new FormData();
+    formData.append("dishImg", blob, "crop-dish.jpg");
+
+    try {
+        const res = await fetch(`${API_BASE}/upload`, {
+            method: "POST",
+            headers: {
+                "X-Admin-Token": adminToken // 携带管理员凭证校验
+            },
+            body: formData
+        });
+        const json = await res.json();
+        if (json.code !== 200) throw new Error(json.msg);
+
+        // 3. 上传成功，R2图片URL填入输入框，展示预览
+        const r2ImgUrl = json.data.imgUrl;
+        dishImageInput.value = r2ImgUrl;
+        preview.src = r2ImgUrl;
+        preview.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        showToast('图片已上传至图库', 'success');
+    } catch (err) {
+        console.error("图片上传失败", err);
+        showToast(err.message || "图片上传失败", "error");
+    }
 }
-// 已删除本地图片上传函数
 async function saveDish() {
     if (!state.isAdmin) return;
     const name = document.getElementById('dishName').value.trim();
-    const rawUrl = document.getElementById('dishImage').value.trim();
-    const cropBase64 = document.getElementById('cropResultBase64').value.trim();
-    const image = cropBase64 || rawUrl;
+    // 只读取R2在线URL/网络链接，不再读取base64
+    const image = document.getElementById('dishImage').value.trim();
     const ingredients = document.getElementById('dishIngredients').value.trim();
     const category = state.selectedCategory;
     if (!name) { showToast('请输入菜品名称', 'error'); return; }
@@ -1831,7 +1902,7 @@ async function saveDish() {
     }
     await saveData();
     renderMenu();
-    closeDishForm(); // 【修复2】保存后关闭弹窗
+    closeDishForm();
 }
 function deleteDish(dishId) {
     if (!state.isAdmin) return;

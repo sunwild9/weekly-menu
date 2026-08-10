@@ -1,6 +1,3 @@
-// 移除所有TS导入、interface、类型标注
-export interface Env 全部删除，改为运行时读取env对象
-
 // 公开访问密钥（访客查看页面用）
 const PUBLIC_ACCESS_KEY = "menu-view-9876secret";
 // token有效期 2小时
@@ -38,13 +35,13 @@ async function handleImageUpload(request, env) {
     return Response.json({ code: 400, msg: "未上传图片文件" }, { status: 400 });
   }
 
-  // 限制文件类型、大小 5MB
+  // 限制文件类型、大小 2MB
   const allowType = ["image/jpeg", "image/png", "image/webp"];
   if (!allowType.includes(file.type)) {
     return Response.json({ code: 400, msg: "仅支持jpg/png/webp图片" }, { status: 400 });
   }
-  if (file.size > 5 * 1024 * 1024) {
-    return Response.json({ code: 400, msg: "图片最大5MB" }, { status: 400 });
+  if (file.size > 2 * 1024 * 1024) {
+    return Response.json({ code: 400, msg: "图片最大2MB" }, { status: 400 });
   }
 
   // 生成唯一文件名，避免重名
@@ -61,7 +58,7 @@ async function handleImageUpload(request, env) {
 
   // 获取R2公开访问地址（R2桶需开启公共读权限）
   // 格式：https://<R2桶名>.<账户id>.r2.cloudflarestorage.com/文件名
-  const r2PublicUrl = `https://menu-dish-img.15856149546@163.com.r2.cloudflarestorage.com/${fileName}`;
+  const r2PublicUrl = `https://menu-dish-img.<你的CF账户ID>.r2.cloudflarestorage.com/${fileName}`;
 
   return Response.json({
     code: 200,
