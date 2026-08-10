@@ -1859,6 +1859,7 @@ async function confirmCrop() {
     const placeholder = document.getElementById('dishImagePlaceholder');
     const dishImageInput = document.getElementById('dishImage');
     const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
+
     if (!adminToken) {
         showToast("登录失效，请重新登录", "error");
         return;
@@ -1870,18 +1871,18 @@ async function confirmCrop() {
         maxHeight: 600,
         fillColor: '#fff'
     });
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.6));
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.7));
 
-    // 2. 组装FormData传给后端上传接口
+    // 2. 组装FormData，token放进表单，✅不再放到headers！
     const formData = new FormData();
     formData.append("dishImg", blob, "crop-dish.jpg");
+    // token放在FormData内部，不走HTTP请求头，彻底避开ISO‑8859‑1报错
+    formData.append("adminToken", adminToken);
 
     try {
         const res = await fetch(`${API_BASE}/upload`, {
             method: "POST",
-            headers: {
-                "X-Admin-Token": adminToken // 携带管理员凭证校验
-            },
+            // ✅删除全部Headers，不要手动设置任何header，浏览器自动处理formdata
             body: formData
         });
         const json = await res.json();

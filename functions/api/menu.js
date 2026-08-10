@@ -26,14 +26,14 @@ function verifyToken(token, env) {
 
 // 【新增】R2图片上传接口处理函数
 async function handleImageUpload(request, env) {
-  // 校验管理员token，只有管理员能上传图片
-  const token = request.headers.get("X-Admin-Token");
+  const formData = await request.formData();
+  // ✅不再从header拿token，从表单体内拿
+  const token = formData.get("adminToken");
+
   if (!verifyToken(token, env)) {
     return Response.json({ code: 401, msg: "管理员未登录或凭证失效" }, { status: 401 });
   }
 
-  // 获取表单文件
-  const formData = await request.formData();
   const file = formData.get("dishImg");
   if (!file) {
     return Response.json({ code: 400, msg: "未上传图片文件" }, { status: 400 });
@@ -56,13 +56,12 @@ async function handleImageUpload(request, env) {
   await env.DISH_BUCKET.put(fileName, file.stream(), {
     httpMetadata: {
       contentType: file.type,
-      cacheControl: "public, max-age=31536000" // 图片长期缓存
+      cacheControl: "public, max-age=31536000"
     }
   });
 
-  // 获取R2公开访问地址（R2桶需开启公共读权限）
-  // 格式：https://<R2桶名>.<账户id>.r2.cloudflarestorage.com/文件名
-  const r2PublicUrl = `https://menu-dish-img.<你的CF账户ID>.r2.cloudflarestorage.com/${fileName}`;
+  // R2公开访问地址，替换为你的账户ID
+  const r2PublicUrl = `https://menu-dish-img.15856149546@163.com.r2.cloudflarestorage.com/${fileName}`;
 
   return Response.json({
     code: 200,
