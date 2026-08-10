@@ -57,7 +57,7 @@ async function handleImageUpload(request, env) {
   });
 
   // R2公开访问地址，替换为你的账户ID
-  const r2PublicUrl = `https://menu-dish-img.15856149546@163.com.r2.cloudflarestorage.com/${fileName}`;
+  const r2PublicUrl = `https://pub-100033e1797e4db6ae5b45d37bed153d.r2.dev/${fileName}`;
 
   return Response.json({
     code: 200,
