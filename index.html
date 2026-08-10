@@ -870,12 +870,13 @@ const API_BASE = "/api/menu";
 const PUBLIC_ACCESS_KEY = "menu-view-9876secret";
 // 管理员登录凭证存在localStorage，不再明文写密码
 const ADMIN_TOKEN_KEY = "admin_login_token";
+const ADMIN_EXPIRE_KEY = "admin_token_expire";
 // 页面加载优先清除损坏token
 (function clearBadToken(){
   let token = localStorage.getItem(ADMIN_TOKEN_KEY);
   if(token){
     const cleanToken = token.replace(/[^\x00-\x7F]/g, "");
-    if(cleanToken !== token || clean.trim() === ""){
+    if(cleanToken !== token || cleanToken.trim() === ""){
         localStorage.removeItem(ADMIN_TOKEN_KEY);
         localStorage.removeItem(ADMIN_EXPIRE_KEY);
     }
