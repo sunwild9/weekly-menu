@@ -1911,13 +1911,46 @@ async function saveDish() {
     const category = state.selectedCategory;
     if (!name) { showToast('请输入菜品名称', 'error'); return; }
     if (!category) { showToast('请选择菜品分类', 'error'); return; }
+
+    // 新增：记录编辑前原始菜品信息，用于对比分类是否修改
+    let oldCategory = null;
+    let editTargetId = null;
     if (state.editingDishId) {
-        const dish = getDishById(state.editingDishId);
-        dish.name = name;
-        dish.image = image;
-        dish.ingredients = ingredients;
-        dish.category = category;
-        showToast('菜品已更新，所有周菜单同步生效', 'success');
+        editTargetId = state.editingDishId;
+        const oldDish = getDishById(editTargetId);
+        oldCategory = oldDish.category;
+        // 更新菜品基础信息
+        oldDish.name = name;
+        oldDish.image = image;
+        oldDish.ingredients = ingredients;
+        oldDish.category = category;
+        showToast('菜品已更新', 'success');
+
+        // ========== 新增：同步所有周菜单内该菜品 ==========
+        const dishId = editTargetId;
+        const categoryChanged = oldCategory !== category;
+        // 遍历全部周菜单
+        Object.keys(state.weeklyMenus).forEach(weekKey => {
+            const weekData = state.weeklyMenus[weekKey];
+            Object.keys(weekData).forEach(dayName => {
+                const daySlots = weekData[dayName];
+                Object.keys(daySlots).forEach(slotType => {
+                    if (daySlots[slotType] === dishId) {
+                        if (categoryChanged) {
+                            // 分类变更：直接删除该菜品槽位
+                            delete daySlots[slotType];
+                        }
+                        // 分类不变无需操作，渲染时自动读取最新菜品数据
+                    }
+                });
+            });
+        });
+        // 分类变动标记菜单未保存
+        if (categoryChanged) {
+            state.hasUnsaved = true;
+            showToast("菜品分类已修改，所有周菜单内该菜品已自动移除", "default");
+        }
+        // ========== 同步逻辑结束 ==========
     } else {
         const newId = Date.now();
         state.dishes.push({ id: newId, name, image, ingredients, category });
