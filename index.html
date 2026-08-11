@@ -1934,12 +1934,6 @@ async function saveDish() {
         // 失败不关闭弹窗，让用户修改
     }
 }
-// 给图片URL拼接时间戳，绕过浏览器缓存
-function getFreshImgUrl(url) {
-    if (!url) return "";
-    const separator = url.includes("?") ? "&" : "?";
-    return url + separator + "t=" + Date.now();
-}
 function deleteDish(dishId) {
     if (!state.isAdmin) return;
     const dish = getDishById(dishId);
