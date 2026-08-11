@@ -882,6 +882,7 @@ const ADMIN_EXPIRE_KEY = "admin_token_expire";
     }
   }
 })();
+const ADMIN_EXPIRE_KEY = "admin_token_expire";
 // 默认菜品数据（后端无数据时初始化）
 const DEFAULT_DISHES = [
     { id: 1, name: '宫保鸡丁', category: '大荤', image: '', ingredients: '鸡胸肉、花生、干辣椒' },
@@ -1684,7 +1685,7 @@ function renderMenu() {
         return `
             <div class="bg-white rounded-2xl overflow-hidden border border-[#ECE5D8] card-shadow card-shadow-hover transition group">
                 <div class="relative aspect-[4/3] overflow-hidden dish-image">
-                    ${dish.image ? `<img src="${dish.image}" loading="lazy" onerror="this.style.display='none'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-[#D4C9B5]"></i></div>`}
+                    ${dish.image ? `<img src="${getFreshImgUrl(dish.image)}" loading="lazy" onerror="this.style.display='none'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-[#D4C9B5]"></i></div>`}
                     <span class="absolute top-3 left-3 text-xs font-medium px-2 py-1 rounded-full ${tagClass} bg-white/90 backdrop-blur-sm">
                         <i class="fa-solid ${icon} mr-1 text-[10px]"></i>${dish.category}
                     </span>
@@ -1702,6 +1703,12 @@ function renderMenu() {
 }
 function openDishForm(dishId) {
     if (!state.isAdmin) return;
+   // 每次打开弹窗强制销毁裁剪器，清空画布
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    document.getElementById('cropperWrap').classList.add('hidden');
     const modal = document.getElementById('dishFormModal');
     const title = document.getElementById('dishFormTitle');
     if (dishId) {
@@ -1921,6 +1928,17 @@ async function saveDish() {
     renderMenu();
     renderWeek(); 
     closeDishForm();
+   } catch (err) {
+        console.error("保存菜品失败", err);
+        showToast(err.message || "保存失败，请重试", "error");
+        // 失败不关闭弹窗，让用户修改
+    }
+}
+// 给图片URL拼接时间戳，绕过浏览器缓存
+function getFreshImgUrl(url) {
+    if (!url) return "";
+    const separator = url.includes("?") ? "&" : "?";
+    return url + separator + "t=" + Date.now();
 }
 function deleteDish(dishId) {
     if (!state.isAdmin) return;
