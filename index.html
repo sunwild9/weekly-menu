@@ -1917,13 +1917,14 @@ async function saveDish() {
         dish.image = image;
         dish.ingredients = ingredients;
         dish.category = category;
-        showToast('菜品已更新', 'success');
+        showToast('菜品已更新，所有周菜单同步生效', 'success');
     } else {
         const newId = Date.now();
         state.dishes.push({ id: newId, name, image, ingredients, category });
         showToast('菜品已添加', 'success');
     }
     await saveData();
+    await loadData();
     renderMenu();
     renderWeek(); 
     closeDishForm();
