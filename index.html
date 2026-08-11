@@ -1685,7 +1685,7 @@ function renderMenu() {
         return `
             <div class="bg-white rounded-2xl overflow-hidden border border-[#ECE5D8] card-shadow card-shadow-hover transition group">
                 <div class="relative aspect-[4/3] overflow-hidden dish-image">
-                    ${dish.image ? `<img src="${getFreshImgUrl(dish.image)}" loading="lazy" onerror="this.style.display='none'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-[#D4C9B5]"></i></div>`}
+                    ${dish.image ? `<img src="${dish.image}" loading="lazy" onerror="this.style.display='none'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-[#D4C9B5]"></i></div>`}
                     <span class="absolute top-3 left-3 text-xs font-medium px-2 py-1 rounded-full ${tagClass} bg-white/90 backdrop-blur-sm">
                         <i class="fa-solid ${icon} mr-1 text-[10px]"></i>${dish.category}
                     </span>
@@ -1928,11 +1928,6 @@ async function saveDish() {
     renderMenu();
     renderWeek(); 
     closeDishForm();
-   } catch (err) {
-        console.error("保存菜品失败", err);
-        showToast(err.message || "保存失败，请重试", "error");
-        // 失败不关闭弹窗，让用户修改
-    }
 }
 function deleteDish(dishId) {
     if (!state.isAdmin) return;
