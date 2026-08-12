@@ -1318,6 +1318,15 @@ function renderWeek() {
 // 2. 访客：只有已发布周才显示七日卡片，未发布只展示空白提示
 const isAdmin = state.isAdmin;
 if (!isPublished && !isAdmin) {
+// ========== 新增：提前更新返回本周按钮文字与样式（访客也生效）
+const jumpBtn = document.getElementById('btnJumpThisWeek');
+if (state.currentWeekOffset === 0) {
+    jumpBtn.textContent = '本周';
+    jumpBtn.className = 'px-3 h-9 rounded-xl hover:bg-[#FAF6EF] text-sm font-medium text-[#1A1A1A] transition flex-none flex items-center justify-center';
+} else {
+    jumpBtn.textContent = '返回本周';
+    jumpBtn.className = 'px-3 h-9 rounded-xl text-sm font-medium text-white transition flex-none flex items-center justify-center btn-primary';
+}
     // 访客 + 未发布：只展示提示，隐藏所有卡片、导航、统计
     weekTipWrap.innerHTML = `
               <div class="icon-wrap"><i class="fa-solid fa-calendar-xmark"></i></div>
