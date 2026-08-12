@@ -1561,32 +1561,52 @@ async function removeDishFromWeek(weekKey, day, type) {
     }
 }
 async function autoArrange() {
-    if (!state.isAdmin) return;
-    const dates = getWeekDates(state.currentWeekOffset);
-    const monday = dates[0];
-    const weekKey = getWeekKey(monday);
-    const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    if (!state.isAdmin) {
+        showToast("请重新登录管理员账号", "error");
+        return;
+    }
     const vegDishes = state.dishes.filter(d => d.category === '素菜');
     const meatDishes = state.dishes.filter(d => d.category === '小荤');
     const bigMeatDishes = state.dishes.filter(d => d.category === '大荤');
     const soupDishes = state.dishes.filter(d => d.category === '汤品');
-    if (vegDishes.length < 7 || meatDishes.length < 7 || bigMeatDishes.length < 7) {
-        showToast('菜品库不足，每类至少需要7道菜', 'error');
+
+    // 前置校验
+    const lackList = [];
+    if (vegDishes.length < 7) lackList.push(`素菜(${vegDishes.length}/7)`);
+    if (meatDishes.length < 7) lackList.push(`小荤(${meatDishes.length}/7)`);
+    if (bigMeatDishes.length < 7) lackList.push(`大荤(${bigMeatDishes.length}/7)`);
+    if (soupDishes.length < 7) lackList.push(`汤品(${soupDishes.length}/7)`);
+
+    if(lackList.length > 0){
+        showToast(`菜品数量不足：${lackList.join('、')}，每类至少7道`, "error");
         return;
     }
+    // 打乱并截取7条
     const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
-    const veg = shuffle(vegDishes).slice(0, 7);
-    const meat = shuffle(meatDishes).slice(0, 7);
-    const bigMeat = shuffle(bigMeatDishes).slice(0, 7);
-    const soup = shuffle(soupDishes).slice(0, 7);
+    const veg = shuffle(vegDishes).slice(0,7);
+    const meat = shuffle(meatDishes).slice(0,7);
+    const bigMeat = shuffle(bigMeatDishes).slice(0,7);
+    const soup = shuffle(soupDishes).slice(0,7);
+
+    const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
     const newWeekMenu = {};
-    dayNames.forEach((day, i) => {
-        newWeekMenu[day] = { '素菜': veg[i].id, '小荤': meat[i].id, '大荤': bigMeat[i].id,'汤品': soup[i].id };
+    dayNames.forEach((day,i)=>{
+        // 增加可选链容错，防止极端情况undefined
+        newWeekMenu[day] = {
+            '素菜': veg[i]?.id,
+            '小荤': meat[i]?.id,
+            '大荤': bigMeat[i]?.id,
+            '汤品': soup[i]?.id
+        }
     });
+
+     // 后续原有保存、渲染逻辑不变
+    const dates = getWeekDates(state.currentWeekOffset);
+    const weekKey = getWeekKey(dates[0]);
     state.weeklyMenus[weekKey] = newWeekMenu;
     await markCurrentWeekUnpublished();
     renderWeek();
-    showToast('已为您智能排菜，请记得保存', 'success');
+    showToast('智能排菜完成，请保存菜单','success');
 }
 // 示例：保存菜品、保存周菜单捕获报错
 async function saveWeekMenu() {
