@@ -1515,7 +1515,18 @@ function renderSelectDishList() {
     const search = document.getElementById('selectSearchInput').value.trim().toLowerCase();
     const weekMenu = state.weeklyMenus[weekKey] || {};
     const usedIds = new Set();
-    Object.values(weekMenu).forEach(dayMenu => Object.values(dayMenu).forEach(id => { if (id) usedIds.add(id); }));
+    // 区分：只有素菜/小荤/大荤才做重复限制，汤品不收集已用ID
+    const limitCategory = ['素菜','小荤','大荤'];
+    if(limitCategory.includes(type)){
+        Object.values(weekMenu).forEach(dayMenu => {
+            Object.entries(dayMenu).forEach((cat, id) => {
+                const catName = cat[0];
+                const dishId = cat[1];
+                // 只统计同分类已使用菜品
+                if(catName === type && dishId) usedIds.add(dishId);
+            });
+        });
+    }
     let list = state.dishes.filter(d => d.category === type);
     if (search) list = list.filter(d => d.name.toLowerCase().includes(search) || (d.ingredients || '').toLowerCase().includes(search));
     const listEl = document.getElementById('selectDishList');
@@ -1525,19 +1536,23 @@ function renderSelectDishList() {
     }
     listEl.innerHTML = list.map(dish => {
         const used = usedIds.has(dish.id);
+        // 汤品永远不锁定，即使存在也可重复选择
+        const isLimitType = limitCategory.includes(type);
+        const disableClick = isLimitType && used;
         return `
-            <div onclick="${used ? '' : `selectDishForWeek(${dish.id})`}" class="flex items-center gap-3 p-3 rounded-2xl border ${used ? 'border-[#ECE5D8] bg-[#FAF6EF] opacity-60' : 'border-[#ECE5D8] hover:border-[#C73E1D] hover:bg-[#FAF6EF] cursor-pointer'} transition">
+            <div onclick="${disableClick ? '' : `selectDishForWeek(${dish.id})`}" class="flex items-center gap-3 p-3 rounded-2xl border ${disableClick ? 'border-[#ECE5D8] bg-[#FAF6EF] opacity-60' : 'border-[#ECE5D8] hover:border-[#C73E1D] hover:bg-[#FAF6EF] cursor-pointer'} transition">
                 <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 dish-image">
                     ${dish.image ? `<img src="${dish.image}" loading="lazy" onerror="this.style.display='none'">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid fa-utensils text-[#8A8A8A]"></i></div>`}
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-0.5">
                         <p class="font-semibold text-sm text-[#1A1A1A] truncate">${dish.name}</p>
-                        ${used ? '<span class="text-[10px] text-[#BC4749]">本周已用</span>' : ''}
+                        ${disableClick ? '<span class="text-[10px] text-[#BC4749]">本周已用，不可重复</span>' : ''}
+                        ${type === "汤品" && used ? '<span class="text-[10px] text-[#6A994E]">可重复选用</span>' : ''}
                     </div>
                     <p class="text-xs text-[#8A8A8A] truncate">${dish.ingredients || '—'}</p>
                 </div>
-                ${used ? '<i class="fa-solid fa-lock text-[#8A8A8A]"></i>' : '<i class="fa-solid fa-chevron-right text-[#8A8A8A]"></i>'}
+                ${disableClick ? '<i class="fa-solid fa-lock text-[#8A8A8A]"></i>' : '<i class="fa-solid fa-chevron-right text-[#8A8A8A]"></i>'}
             </div>`;
     }).join('');
 }
@@ -1575,10 +1590,9 @@ async function autoArrange() {
     if (vegDishes.length < 7) lackList.push(`素菜(${vegDishes.length}/7)`);
     if (meatDishes.length < 7) lackList.push(`小荤(${meatDishes.length}/7)`);
     if (bigMeatDishes.length < 7) lackList.push(`大荤(${bigMeatDishes.length}/7)`);
-    if (soupDishes.length < 7) lackList.push(`汤品(${soupDishes.length}/7)`);
 
     if(lackList.length > 0){
-        showToast(`菜品数量不足：${lackList.join('、')}，每类至少7道`, "error");
+        showToast(`菜品数量不足：${lackList.join('、')}，素菜/小荤/大荤每类至少7道`, "error");
         return;
     }
     // 打乱并截取7条
@@ -1586,12 +1600,14 @@ async function autoArrange() {
     const veg = shuffle(vegDishes).slice(0,7);
     const meat = shuffle(meatDishes).slice(0,7);
     const bigMeat = shuffle(bigMeatDishes).slice(0,7);
-    const soup = shuffle(soupDishes).slice(0,7);
-
+    const soupPool = shuffle(soupDishes);
+    const soup = [];
+    for(let i=0;i<7;i++){
+        soup.push(soupPool[Math.floor(Math.random() * soupPool.length)]);
+    }
     const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
     const newWeekMenu = {};
     dayNames.forEach((day,i)=>{
-        // 增加可选链容错，防止极端情况undefined
         newWeekMenu[day] = {
             '素菜': veg[i]?.id,
             '小荤': meat[i]?.id,
