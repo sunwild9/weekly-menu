@@ -536,7 +536,7 @@
     <button onclick="changeWeek(-1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
         <i class="fa-solid fa-chevron-left"></i>
     </button>
-    <button id="btnJumpThisWeek" onclick="goToThisWeek()" class="px-3 h-9 rounded-xl hover:bg-[#FAF6EF] text-sm font-medium text-[#1A1A1A] transition flex-none flex items-center justify-center">
+    <button id="btnJumpThisWeek" onclick="goToThisWeek()" class="px-3 h-9 rounded-xl text-sm font-medium transition flex-none flex items-center justify-center">
         本周
     </button>
     <button onclick="changeWeek(1)" class="w-9 h-9 rounded-xl hover:bg-[#FAF6EF] flex items-center justify-center text-[#8A8A8A] hover:text-[#1A1A1A] transition">
@@ -1452,13 +1452,17 @@ return `
        const btns = document.querySelectorAll('.day-nav-btn');
        if (btns[todayIndex]) btns[todayIndex].classList.add('active');
    }
-      // 动态切换按钮文字：当前周显示「本周」，其他周显示「返回本周」
-      const jumpBtn = document.getElementById('btnJumpThisWeek');
-      if (state.currentWeekOffset === 0) {
-          jumpBtn.textContent = '本周';
-      } else {
-          jumpBtn.textContent = '返回本周';
-      }
+      // 动态切换按钮文字与高亮样式：当前周显示「本周」，其他周高亮显示「返回本周」
+   const jumpBtn = document.getElementById('btnJumpThisWeek');
+   if (state.currentWeekOffset === 0) {
+       jumpBtn.textContent = '本周';
+       // 当前周：默认普通样式
+       jumpBtn.className = 'px-3 h-9 rounded-xl hover:bg-[#FAF6EF] text-sm font-medium text-[#1A1A1A] transition flex-none flex items-center justify-center';
+   } else {
+       jumpBtn.textContent = '返回本周';
+       // 非当前周：主题色高亮突出
+       jumpBtn.className = 'px-3 h-9 rounded-xl text-sm font-medium text-white transition flex-none flex items-center justify-center btn-primary';
+   }
 }
 function openSelectDish(weekKey, day, type) {
     if (!state.isAdmin) return;
