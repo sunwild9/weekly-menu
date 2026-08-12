@@ -1125,18 +1125,24 @@ function isCurrentWeekPublished() {
 }
 async function markCurrentWeekUnpublished() {
     const weekKey = getCurrentWeekKey();
+    let needRender = false;
     if (state.publishedWeeks[weekKey]) {
         delete state.publishedWeeks[weekKey];
         state.hasUnsaved = true;
-        await saveData();
         updatePublishBadge();
+        needRender = true;
     } else if (hasWeekDishes(weekKey)) {
         state.hasUnsaved = true;
         updatePublishBadge();
+        needRender = true;
     }
-    // 管理员操作后强制重新渲染页面，不会隐藏卡片
-    if(state.isAdmin){
+    // 管理员立刻重渲染，不再等saveData接口返回
+    if(state.isAdmin && needRender){
         renderWeek();
+    }
+    // 后台异步保存，不阻塞页面渲染
+    if(state.publishedWeeks[weekKey] === undefined){
+        await saveData();
     }
 }
 function updatePublishBadge() {
@@ -1367,33 +1373,34 @@ if (!isPublished && !isAdmin) {
                 else if(type === '小荤'){ tagClass = 'tag-meat'; icon = 'fa-bacon'; }
                 else if(type === '大荤'){ tagClass = 'tag-big-meat'; icon = 'fa-drumstick-bite'; }
                 else if(type === '汤品'){ tagClass = 'tag-soup'; icon = 'fa-mug-hot'; }
-                const actionBtns = state.isAdmin ? `
-                   <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition">
-                        <!-- 更换菜品按钮 -->
-                        <button class="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-[#C73E1D] hover:bg-[#FAF6EF]" onclick="event.stopPropagation(); openSelectDish('${weekKey}', '${dayName}', '${type}')" title="更换菜品">
-                               <i class="fa-solid fa-arrows-rotate text-xs"></i>
-                        </button>
-                        <!-- 移除菜品按钮 -->
-                        <button class="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-[#BC4749] hover:bg-[#F7DEDD]" onclick="event.stopPropagation(); removeDishFromWeek('${weekKey}', '${dayName}', '${type}')" title="移除菜品">
-                              <i class="fa-solid fa-xmark text-xs"></i>
-                        </button>
-                   </div>` : '';
-                return `
-                    <div class="dish-slot group relative">
-                        <div class="flex gap-3 p-2 rounded-xl ${state.isAdmin ? 'hover:bg-[#FAF6EF] cursor-pointer' : ''} transition">
-                            <div class="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 dish-image">
-                                ${dish.image ? `<img src="${dish.image}" alt="${dish.name}" loading="lazy" onerror="this.style.display='none'">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-[#8A8A8A]"></i></div>`}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-1.5 mb-0.5">
-                                    <span class="text-[10px] font-medium px-1.5 rounded ${tagClass}">${type}</span>
-                                </div>
-                                <p class="font-semibold text-sm text-[#1A1A1A] truncate">${dish.name}</p>
-                                <p class="text-xs text-[#8A8A8A] truncate mt-0.5">${dish.ingredients || '—'}</p>
-                            </div>
-                            ${removeBtn}
-                        </div>
-                    </div>`;
+                // 原错误片段
+const actionBtns = state.isAdmin ? `
+   <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition">
+        <!-- 更换菜品按钮 -->
+        <button class="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-[#C73E1D] hover:bg-[#FAF6EF]" onclick="event.stopPropagation(); openSelectDish('${weekKey}', '${dayName}', '${type}')" title="更换菜品">
+               <i class="fa-solid fa-arrows-rotate text-xs"></i>
+        </button>
+        <!-- 移除菜品按钮 -->
+        <button class="w-6 h-6 rounded-full bg-white shadow-sm flex items-center justify-center text-[#BC4749] hover:bg-[#F7DEDD]" onclick="event.stopPropagation(); removeDishFromWeek('${weekKey}', '${dayName}', '${type}')" title="移除菜品">
+              <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+   </div>` : '';
+return `
+    <div class="dish-slot group relative">
+        <div class="flex gap-3 p-2 rounded-xl ${state.isAdmin ? 'hover:bg-[#FAF6EF] cursor-pointer' : ''} transition">
+            <div class="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 dish-image">
+                ${dish.image ? `<img src="${dish.image}" alt="${dish.name}" loading="lazy" onerror="this.style.display='none'">` : `<div class="w-full h-full flex items-center justify-center"><i class="fa-solid ${icon} text-[#8A8A8A]"></i></div>`}
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5 mb-0.5">
+                    <span class="text-[10px] font-medium px-1.5 rounded ${tagClass}">${type}</span>
+                </div>
+                <p class="font-semibold text-sm text-[#1A1A1A] truncate">${dish.name}</p>
+                <p class="text-xs text-[#8A8A8A] truncate mt-0.5">${dish.ingredients || '—'}</p>
+            </div>
+            ${actionBtns}
+        </div>
+    </div>`;
             } else {
                 if (state.isAdmin) return `<div onclick="openSelectDish('${weekKey}', '${dayName}', '${type}')" class="dish-empty rounded-xl p-3 flex items-center justify-center gap-2"><i class="fa-solid fa-plus text-xs text-[#8A8A8A]"></i><span class="text-xs text-[#8A8A8A]">添加${type}</span></div>`;
                 else return `<div class="rounded-xl p-3 flex items-center justify-center gap-2 h-[72px] border border-dashed border-[#ECE5D8]"><span class="text-xs text-[#C8C0B0]">暂无${type}</span></div>`;
